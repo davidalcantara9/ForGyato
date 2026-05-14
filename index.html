@@ -62,10 +62,12 @@ button{cursor:pointer;font-family:inherit;font-size:.85rem;border:none;border-ra
 .toast{position:fixed;bottom:20px;right:20px;background:var(--s);border:1px solid var(--bd);border-radius:14px;padding:13px 18px;font-size:.85rem;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;box-shadow:var(--sh);max-width:310px}.toast.show{transform:translateY(0);opacity:1}.toast.ok{border-color:var(--a2)}.toast.err{border-color:var(--a3)}
 .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}.tab{padding:8px 16px;border-radius:999px;font-size:.82rem;cursor:pointer;border:1px solid var(--bd);background:transparent;color:var(--m);font-weight:800}.tab.on{background:var(--a);color:#fff;border-color:var(--a)}
 .api-box{margin:0 0 20px;background:linear-gradient(135deg,rgba(108,99,255,.16),rgba(0,212,170,.08));border:1px solid rgba(108,99,255,.4);border-radius:16px;padding:20px;display:none}.api-box.show{display:block}.api-box h3{color:var(--t);margin-bottom:8px;font-size:1rem}.api-box p{color:var(--m);font-size:.84rem;margin-bottom:12px;line-height:1.5}
+.api-status{display:inline-flex;align-items:center;gap:7px;font-size:.78rem;font-weight:800;border:1px solid var(--bd);border-radius:999px;padding:6px 10px;color:var(--m);margin-bottom:12px}.api-status.ok{color:var(--a2);border-color:rgba(0,212,170,.35);background:rgba(0,212,170,.08)}.api-status.err{color:var(--a3);border-color:rgba(255,107,107,.35);background:rgba(255,107,107,.08)}
 .dopt{background:var(--s2);border:1px solid var(--bd);border-radius:14px;padding:15px;cursor:pointer}.dopt:hover{border-color:var(--a)}.dopt h4{font-size:.9rem;font-weight:800;margin-bottom:6px}.dopt p{font-size:.79rem;color:var(--m);line-height:1.5}
 .admin-shell{min-height:100vh;background:var(--bg)}.admin-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}.admin-head h1{font-size:1.35rem}.admin-head p{color:var(--m);font-size:.84rem;margin-top:4px}.admin-table{width:100%;border-collapse:collapse;font-size:.82rem}.admin-table th,.admin-table td{padding:13px 10px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:middle}.admin-table th{color:var(--m);font-size:.7rem;text-transform:uppercase;letter-spacing:.8px}.admin-table td{color:var(--t)}.admin-actions{display:flex;gap:8px;flex-wrap:wrap}.status-pill{display:inline-block;border-radius:999px;padding:4px 9px;font-size:.72rem;font-weight:800}.status-pill.ok{background:#0a2a1a;color:var(--a2)}.status-pill.blocked{background:#2a0a0a;color:var(--a3)}.status-pill.expired{background:#1a1a0a;color:var(--a4)}
 input[type=number]{-moz-appearance:textfield}input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
-@media(max-width:760px){.hdr{padding-top:64px}.userbar{right:14px;justify-content:center}.badge{top:50px}.brand-head{gap:9px}.brand-mark{width:36px;height:36px}.brand-head h1{font-size:1.32rem}.g2,.fg2{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.admin-table,.admin-table tbody,.admin-table tr,.admin-table td{display:block}.admin-table thead{display:none}.admin-table tr{border:1px solid var(--bd);border-radius:14px;padding:8px;margin-bottom:10px;background:var(--s2)}.admin-table td{border-bottom:none;padding:7px 4px}.admin-table td::before{content:attr(data-label);display:block;color:var(--m);font-size:.68rem;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}}
+@media(max-width:760px){body{padding-bottom:28px}.auth{align-items:flex-start;padding:14px}.login-card{padding:20px;border-radius:16px}.brand-login{width:200px}.hdr{padding:70px 14px 22px}.userbar{left:12px;right:12px;top:12px;justify-content:center}.badge{position:static;display:inline-block;margin-top:10px}.brand-head{gap:9px}.brand-mark{width:36px;height:36px}.brand-head h1{font-size:1.22rem}.wrap,.admin-wrap{padding:0 12px}.admin-wrap{padding-top:16px}.g2,.fg2{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.sc{padding:14px}.sc .v{font-size:1.55rem}.card{padding:16px;border-radius:14px}.api-row,.air{display:grid;grid-template-columns:1fr}.api-row input,.air input{min-width:0}.wi{align-items:stretch}.wi input{width:100%}.dg{gap:5px}.dc{font-size:.64rem}.admin-table,.admin-table tbody,.admin-table tr,.admin-table td{display:block}.admin-table thead{display:none}.admin-table tr{border:1px solid var(--bd);border-radius:14px;padding:8px;margin-bottom:10px;background:var(--s2)}.admin-table td{border-bottom:none;padding:7px 4px;overflow-wrap:anywhere}.admin-table td::before{content:attr(data-label);display:block;color:var(--m);font-size:.68rem;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}.admin-actions{display:grid;grid-template-columns:1fr 1fr}.admin-actions button{width:100%}}
+@media(max-width:420px){.stats{grid-template-columns:1fr}.brand-head h1{font-size:1.08rem}.theme-select,.logout,.userpill{font-size:.68rem;padding:5px 8px}}
 </style>
 </head>
 <body>
@@ -164,10 +166,18 @@ input[type=number]{-moz-appearance:textfield}input[type=number]::-webkit-inner-s
     <div class="api-box show" id="apiBox">
       <h3>🔑 Token global de IA</h3>
       <p>Configure a chave da OpenAI usada pelas análises dos usuários. Cada novo usuário começa com 50 consultas de refeição.</p>
+      <div class="api-status" id="apiStatus">Status: não testado</div>
       <div class="api-row">
         <input type="password" id="apiKey" placeholder="sk-..."/>
         <button class="bp" onclick="saveKey()">Salvar token</button>
+        <button class="bgh" onclick="testAiKey()">Testar token</button>
       </div>
+    </div>
+    <div class="stats" id="adminStats">
+      <div class="sc"><div class="v" id="adminUsersTotal" style="color:var(--a)">0</div><div class="l">Usuários</div></div>
+      <div class="sc"><div class="v" id="adminAiUsed" style="color:var(--a2)">0</div><div class="l">Consultas usadas</div></div>
+      <div class="sc"><div class="v" id="adminAiLeft" style="color:#7dd3fc">0</div><div class="l">Consultas restantes</div></div>
+      <div class="sc"><div class="v" id="adminAiTotal" style="color:var(--a4)">0</div><div class="l">Consultas totais</div></div>
     </div>
     <div class="admin-head">
       <div>
@@ -858,6 +868,14 @@ async function renderAdminUsers(){
 function renderAdminRows(rows){
   const el = document.getElementById('adminUsers');
   const active = rows.filter(u=>!u.blocked && !isExpired(u)).length;
+  const userRows = rows.filter(u=>u.role !== 'admin');
+  const totalCredits = userRows.reduce((sum,u)=>sum+(Number(u.aiCredits)||0),0);
+  const totalLimit = userRows.length * 50;
+  const usedCredits = Math.max(totalLimit-totalCredits,0);
+  document.getElementById('adminUsersTotal').textContent=userRows.length;
+  document.getElementById('adminAiUsed').textContent=usedCredits;
+  document.getElementById('adminAiLeft').textContent=totalCredits;
+  document.getElementById('adminAiTotal').textContent=totalLimit;
   document.getElementById('adminSummary').textContent=`${rows.length} cadastro(s), ${active} ativo(s). Cada cadastro tem ${ACCESS_DAYS} dias de uso.`;
   if(!rows.length){
     el.innerHTML='<tr><td colspan="6" data-label="Cadastros" style="color:var(--m)">Nenhum usuário cadastrado.</td></tr>';
@@ -983,6 +1001,7 @@ async function saveKey(){
   try{
     KEY = v;
     await setSetting('openai_api_key', btoa(v));
+    setApiStatus('Token salvo. Teste para confirmar funcionamento.', '');
     toast('Token de IA salvo','ok');
   }catch(e){ toast('Erro ao salvar token: '+e.message,'err'); }
 }
@@ -995,8 +1014,34 @@ async function loadKey(){
       if(input) input.value=KEY;
       const badge=document.getElementById('badge');
       if(badge){ badge.textContent='✅ IA ativa'; badge.classList.add('on'); }
+      setApiStatus('Token configurado', 'ok');
     }
   }catch(e){}
+}
+function setApiStatus(text,type=''){
+  const el=document.getElementById('apiStatus');
+  if(!el) return;
+  el.textContent='Status: '+text;
+  el.className='api-status '+type;
+}
+async function testAiKey(){
+  const input=document.getElementById('apiKey');
+  const key=(input?.value||KEY||'').trim();
+  if(!key.startsWith('sk-')){ setApiStatus('token inválido','err'); toast('Chave inválida','err'); return; }
+  setApiStatus('testando...');
+  try{
+    const r=await fetch('https://api.openai.com/v1/models',{
+      headers:{'Authorization':'Bearer '+key}
+    });
+    if(!r.ok) throw new Error('falha na autenticação');
+    KEY=key;
+    await setSetting('openai_api_key', btoa(key));
+    setApiStatus('funcionando','ok');
+    toast('Token funcionando','ok');
+  }catch(e){
+    setApiStatus('não está funcionando','err');
+    toast('Token não funcionou','err');
+  }
 }
 
 // ── UTILITÁRIOS ───────────────────────────────────────────────
