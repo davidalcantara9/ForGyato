@@ -20,7 +20,7 @@ body{background:var(--bg);color:var(--t);font-family:'Manrope','Segoe UI',system
 .login-card{width:100%;max-width:460px;background:color-mix(in srgb,var(--s) 94%,transparent);border:1px solid var(--bd);border-radius:18px;padding:28px;box-shadow:var(--sh);backdrop-filter:blur(14px)}
 .login-card p{color:var(--m);font-size:.9rem;line-height:1.6;margin-bottom:20px}
 .brand-login{display:block;width:235px;max-width:76%;height:auto;margin:0 0 16px}
-.brand-head{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:6px}
+.brand-head{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin-bottom:6px}
 .brand-mark{width:42px;height:42px;display:block}
 .brand-head h1{font-size:1.55rem;font-weight:800;margin:0}.brand-head h1 span{color:var(--a2)}
 .auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:5px;margin-bottom:18px}
@@ -30,14 +30,16 @@ body{background:var(--bg);color:var(--t);font-family:'Manrope','Segoe UI',system
 .field input,.field select,.air input,.api-row input,.wi input,.ta{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 13px;color:var(--t);font-family:inherit;font-size:.9rem}
 .field input:focus,.field select:focus,.air input:focus,.api-row input:focus,.wi input:focus,.ta:focus{outline:none;border-color:var(--a);box-shadow:0 0 0 3px rgba(108,99,255,.14)}
 .auth-note{font-size:.76rem;color:var(--m);margin-top:14px;line-height:1.5}
-.hdr{background:linear-gradient(135deg,#181039,#0b192b);border-bottom:1px solid var(--bd);padding:28px 24px;text-align:center;position:relative;box-shadow:0 12px 40px rgba(0,0,0,.18)}
-body[data-theme="light"] .hdr{background:linear-gradient(135deg,#ffffff,#eaf2ff)}
-.hdr p{color:var(--m);font-size:.86rem;margin-top:4px}
-.badge{position:absolute;top:16px;right:16px;font-size:.72rem;padding:5px 11px;border-radius:999px;background:#2a1a1a;border:1px solid #4a2a2a;color:var(--a3)}
+.hdr{background:color-mix(in srgb,var(--s) 94%,transparent);border-bottom:1px solid var(--bd);padding:14px 22px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px;text-align:left;position:sticky;top:0;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.16);backdrop-filter:blur(14px)}
+body[data-theme="light"] .hdr{background:rgba(255,255,255,.88)}
+.hdr p{color:var(--m);font-size:.78rem;margin-top:1px}
+.badge{justify-self:end;font-size:.72rem;padding:5px 11px;border-radius:999px;background:#2a1a1a;border:1px solid #4a2a2a;color:var(--a3)}
 .badge.on{background:#11291f;border-color:#245f4d;color:var(--a2)}
-.userbar{position:absolute;left:16px;top:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.userpill,.theme-select,.logout{font-size:.72rem;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid var(--bd);color:var(--t)}
-.logout{color:var(--m);background:transparent}.theme-select{font-family:inherit}
+.userbar{grid-column:2;grid-row:1 / span 2;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.userpill,.theme-select,.logout{font-size:.72rem;padding:7px 10px;border-radius:10px;background:var(--s2);border:1px solid var(--bd);color:var(--t);height:32px}
+.logout{color:var(--m);background:transparent}.theme-select{font-family:inherit;min-width:92px}
+.brand-head h1{font-size:1.28rem}
+.brand-mark{width:36px;height:36px}
 .wrap,.admin-wrap{max-width:1080px;margin:0 auto;padding:0 18px}.admin-wrap{padding-top:24px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .card,.sc,.fc,.dopt{background:var(--s);border:1px solid var(--bd);border-radius:16px;box-shadow:var(--sh)}
@@ -66,7 +68,7 @@ button{cursor:pointer;font-family:inherit;font-size:.85rem;border:none;border-ra
 .dopt{background:var(--s2);border:1px solid var(--bd);border-radius:14px;padding:15px;cursor:pointer}.dopt:hover{border-color:var(--a)}.dopt h4{font-size:.9rem;font-weight:800;margin-bottom:6px}.dopt p{font-size:.79rem;color:var(--m);line-height:1.5}
 .admin-shell{min-height:100vh;background:var(--bg)}.admin-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}.admin-head h1{font-size:1.35rem}.admin-head p{color:var(--m);font-size:.84rem;margin-top:4px}.admin-table{width:100%;border-collapse:collapse;font-size:.82rem}.admin-table th,.admin-table td{padding:13px 10px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:middle}.admin-table th{color:var(--m);font-size:.7rem;text-transform:uppercase;letter-spacing:.8px}.admin-table td{color:var(--t)}.admin-actions{display:flex;gap:8px;flex-wrap:wrap}.status-pill{display:inline-block;border-radius:999px;padding:4px 9px;font-size:.72rem;font-weight:800}.status-pill.ok{background:#0a2a1a;color:var(--a2)}.status-pill.blocked{background:#2a0a0a;color:var(--a3)}.status-pill.expired{background:#1a1a0a;color:var(--a4)}
 input[type=number]{-moz-appearance:textfield}input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
-@media(max-width:760px){body{padding-bottom:28px}.auth{align-items:flex-start;padding:14px}.login-card{padding:20px;border-radius:16px}.brand-login{width:200px}.hdr{padding:70px 14px 22px}.userbar{left:12px;right:12px;top:12px;justify-content:center}.badge{position:static;display:inline-block;margin-top:10px}.brand-head{gap:9px}.brand-mark{width:36px;height:36px}.brand-head h1{font-size:1.22rem}.wrap,.admin-wrap{padding:0 12px}.admin-wrap{padding-top:16px}.g2,.fg2{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.sc{padding:14px}.sc .v{font-size:1.55rem}.card{padding:16px;border-radius:14px}.api-row,.air{display:grid;grid-template-columns:1fr}.api-row input,.air input{min-width:0}.wi{align-items:stretch}.wi input{width:100%}.dg{gap:5px}.dc{font-size:.64rem}.admin-table,.admin-table tbody,.admin-table tr,.admin-table td{display:block}.admin-table thead{display:none}.admin-table tr{border:1px solid var(--bd);border-radius:14px;padding:8px;margin-bottom:10px;background:var(--s2)}.admin-table td{border-bottom:none;padding:7px 4px;overflow-wrap:anywhere}.admin-table td::before{content:attr(data-label);display:block;color:var(--m);font-size:.68rem;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}.admin-actions{display:grid;grid-template-columns:1fr 1fr}.admin-actions button{width:100%}}
+@media(max-width:760px){body{padding-bottom:28px}.auth{align-items:flex-start;padding:14px}.login-card{padding:20px;border-radius:16px}.brand-login{width:200px}.hdr{position:relative;grid-template-columns:1fr;padding:14px;text-align:left}.userbar{grid-column:1;grid-row:auto;justify-content:flex-start;margin-top:10px}.badge{justify-self:start;margin-top:8px}.brand-head{gap:9px}.brand-mark{width:34px;height:34px}.brand-head h1{font-size:1.12rem}.wrap,.admin-wrap{padding:0 12px}.admin-wrap{padding-top:16px}.g2,.fg2{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.sc{padding:14px}.sc .v{font-size:1.55rem}.card{padding:16px;border-radius:14px}.api-row,.air{display:grid;grid-template-columns:1fr}.api-row input,.air input{min-width:0}.wi{align-items:stretch}.wi input{width:100%}.dg{gap:5px}.dc{font-size:.64rem}.admin-table,.admin-table tbody,.admin-table tr,.admin-table td{display:block}.admin-table thead{display:none}.admin-table tr{border:1px solid var(--bd);border-radius:14px;padding:8px;margin-bottom:10px;background:var(--s2)}.admin-table td{border-bottom:none;padding:7px 4px;overflow-wrap:anywhere}.admin-table td::before{content:attr(data-label);display:block;color:var(--m);font-size:.68rem;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}.admin-actions{display:grid;grid-template-columns:1fr 1fr}.admin-actions button{width:100%}}
 @media(max-width:420px){.stats{grid-template-columns:1fr}.brand-head h1{font-size:1.08rem}.theme-select,.logout,.userpill{font-size:.68rem;padding:5px 8px}}
 </style>
 </head>
@@ -147,6 +149,13 @@ input[type=number]{-moz-appearance:textfield}input[type=number]::-webkit-inner-s
 
 <div class="admin-shell hidden" id="adminShell">
   <div class="hdr">
+    <div>
+      <div class="brand-head">
+        <img class="brand-mark" src="images/forgyato-mark.svg?v=2" alt="">
+        <h1>ForGyato — <span>Admin</span></h1>
+      </div>
+      <p>Gerenciamento de cadastros e acessos</p>
+    </div>
     <div class="userbar">
       <span class="userpill">Administrador</span>
       <select class="theme-select" onchange="setTheme(this.value)">
@@ -156,11 +165,6 @@ input[type=number]{-moz-appearance:textfield}input[type=number]::-webkit-inner-s
       </select>
       <button class="logout" onclick="logout()">Sair</button>
     </div>
-    <div class="brand-head">
-      <img class="brand-mark" src="images/forgyato-mark.svg?v=2" alt="">
-      <h1>ForGyato — <span>Admin</span></h1>
-    </div>
-    <p>Gerenciamento de cadastros e acessos</p>
   </div>
   <div class="admin-wrap">
     <div class="api-box show" id="apiBox">
@@ -208,6 +212,13 @@ input[type=number]{-moz-appearance:textfield}input[type=number]::-webkit-inner-s
 
 <div class="app hidden" id="appShell">
 <div class="hdr">
+  <div>
+    <div class="brand-head">
+      <img class="brand-mark" src="images/forgyato-mark.svg?v=2" alt="">
+      <h1>ForGyato — <span id="userNameTitle">Seu nome</span></h1>
+    </div>
+    <p id="profileLine">Perfil configurável · objetivo personalizado</p>
+  </div>
   <div class="userbar">
     <span class="userpill" id="userPill">Usuário</span>
     <select class="theme-select" onchange="setTheme(this.value)">
@@ -217,11 +228,6 @@ input[type=number]{-moz-appearance:textfield}input[type=number]::-webkit-inner-s
     </select>
     <button class="logout" onclick="logout()">Sair</button>
   </div>
-  <div class="brand-head">
-    <img class="brand-mark" src="images/forgyato-mark.svg?v=2" alt="">
-    <h1>ForGyato — <span id="userNameTitle">Seu nome</span></h1>
-  </div>
-  <p id="profileLine">Perfil configurável · objetivo personalizado</p>
   <div class="badge" id="badge">⚡ IA offline</div>
 </div>
 
