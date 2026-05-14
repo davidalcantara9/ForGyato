@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>SECABEM</title>
+<title>ForGyato</title>
+<link rel="icon" href="images/forgyato-mark.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,6 +18,11 @@ body{background:var(--bg);color:var(--t);font-family:'Manrope','Segoe UI',system
 .login-card{width:100%;max-width:430px;background:var(--s);border:1px solid var(--bd);border-radius:var(--r);padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .login-card h1{font-size:1.6rem;margin-bottom:6px}.login-card h1 span{color:var(--a2)}
 .login-card p{color:var(--m);font-size:.86rem;line-height:1.55;margin-bottom:18px}
+.brand-login{display:block;width:220px;max-width:72%;height:auto;margin:0 0 12px}
+.brand-head{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:4px}
+.brand-mark{width:42px;height:42px;display:block}
+.brand-head h1{font-size:1.55rem;font-weight:800;margin:0}
+.brand-head h1 span{color:var(--a2)}
 .auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--s2);border-radius:var(--rs);padding:4px;margin-bottom:16px}
 .auth-tabs button{background:transparent;color:var(--m);padding:9px;border-radius:6px}
 .auth-tabs button.on{background:var(--a);color:#fff}
@@ -34,7 +40,7 @@ body{background:var(--bg);color:var(--t);font-family:'Manrope','Segoe UI',system
 .userbar{position:absolute;left:14px;top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .userpill{font-size:.72rem;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid var(--bd);color:var(--t)}
 .logout{font-size:.7rem;padding:4px 9px;border-radius:20px;background:transparent;border:1px solid var(--bd);color:var(--m)}
-@media(max-width:640px){.hdr{padding-top:58px}.userbar{right:14px;justify-content:center}.badge{top:46px}}
+@media(max-width:640px){.hdr{padding-top:58px}.userbar{right:14px;justify-content:center}.badge{top:46px}.brand-head{gap:9px}.brand-mark{width:36px;height:36px}.brand-head h1{font-size:1.32rem}}
 .wrap{max-width:900px;margin:0 auto;padding:0 16px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
@@ -141,6 +147,7 @@ button{cursor:pointer;font-family:inherit;font-size:.85rem;border:none;border-ra
 .admin-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
 .admin-head h1{font-size:1.35rem}
 .admin-head p{color:var(--m);font-size:.84rem;margin-top:4px}
+.admin-alert{background:#1a1a0a;border:1px solid rgba(255,209,102,.35);border-radius:var(--r);padding:14px;margin-bottom:16px;color:var(--a4);font-size:.84rem;line-height:1.55}
 .admin-table{width:100%;border-collapse:collapse;font-size:.82rem}
 .admin-table th,.admin-table td{padding:12px 10px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:middle}
 .admin-table th{color:var(--m);font-size:.72rem;text-transform:uppercase;letter-spacing:.8px}
@@ -161,7 +168,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 
 <div class="auth" id="authScreen">
   <div class="login-card">
-    <h1><span>SECABEM</span></h1>
+    <img class="brand-login" src="images/forgyato-logo.svg" alt="ForGyato">
     <p>Entre no seu perfil para acompanhar peso, checklist, água, refeições e IA com dados separados por usuário.</p>
 
     <div class="auth-tabs">
@@ -207,7 +214,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
       <button class="bg2" style="width:100%" onclick="registerUser()">Criar conta</button>
     </div>
 
-    <div class="auth-note">Esta versão salva usuários e senhas apenas neste navegador. É ótima para testar perfis, mas uma publicação real precisa de autenticação no servidor.</div>
+    <div class="auth-note">Esta versão salva usuários e senhas apenas neste navegador. Cadastros feitos em outros celulares, computadores ou navegadores não aparecem aqui sem um banco de dados central.</div>
 </div>
 </div>
 
@@ -217,7 +224,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
       <span class="userpill">Administrador</span>
       <button class="logout" onclick="logout()">Sair</button>
     </div>
-    <h1>SECABEM — <span>Admin</span></h1>
+    <div class="brand-head">
+      <img class="brand-mark" src="images/forgyato-mark.svg" alt="">
+      <h1>ForGyato — <span>Admin</span></h1>
+    </div>
     <p>Gerenciamento de cadastros e acessos</p>
   </div>
   <div class="admin-wrap">
@@ -228,6 +238,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
       </div>
       <button class="bgh sm" onclick="renderAdminUsers()">Atualizar</button>
     </div>
+    <div class="admin-alert">Modo local: este painel mostra apenas cadastros feitos neste mesmo navegador. Para ver usuários reais de outras pessoas, o site precisa ser conectado a um banco de dados/servidor compartilhado.</div>
     <div class="card">
       <table class="admin-table">
         <thead>
@@ -252,7 +263,10 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <span class="userpill" id="userPill">Usuário</span>
     <button class="logout" onclick="logout()">Sair</button>
   </div>
-  <h1>SECABEM — <span id="userNameTitle">Seu nome</span></h1>
+  <div class="brand-head">
+    <img class="brand-mark" src="images/forgyato-mark.svg" alt="">
+    <h1>ForGyato — <span id="userNameTitle">Seu nome</span></h1>
+  </div>
   <p id="profileLine">Perfil configurável · OMAD · 30 dias</p>
   <div class="badge" id="badge">⚡ IA offline</div>
 </div>
@@ -522,9 +536,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 
 <script>
 // ── ESTADO ────────────────────────────────────────────────────
-const USERS_KEY = 'secagem_users';
-const SESSION_KEY = 'secagem_session';
-const ADMIN_EMAIL = 'admin@secabem.com';
+const USERS_KEY = 'forgyato_users';
+const LEGACY_USERS_KEY = 'secagem_users';
+const SESSION_KEY = 'forgyato_session';
+const LEGACY_SESSION_KEY = 'secagem_session';
+const ADMIN_EMAIL = 'admin@forgyato.com';
 const ADMIN_PASS = 'admin123';
 const ACCESS_DAYS = 365;
 let currentUser = null;
@@ -543,12 +559,22 @@ window.onload = () => {
 
 // ── LOGIN ─────────────────────────────────────────────────────
 function getUsers(){
-  try{ return JSON.parse(localStorage.getItem(USERS_KEY))||{}; }catch(e){ return {}; }
+  try{
+    const users = localStorage.getItem(USERS_KEY);
+    if(users) return JSON.parse(users)||{};
+    const legacyUsers = localStorage.getItem(LEGACY_USERS_KEY);
+    if(legacyUsers){
+      localStorage.setItem(USERS_KEY, legacyUsers);
+      return JSON.parse(legacyUsers)||{};
+    }
+    return {};
+  }catch(e){ return {}; }
 }
 function saveUsers(users){ localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
 function normEmail(v){ return v.trim().toLowerCase(); }
 function userId(email){ return btoa(email).replace(/=+$/,'').replace(/\W/g,''); }
-function userDataKey(){ return 'secabem_data_'+currentUser.id; }
+function userDataKey(){ return 'forgyato_data_'+currentUser.id; }
+function legacyUserDataKey(){ return 'secabem_data_'+currentUser.id; }
 function userApiKey(){ return '_dk_'+currentUser.id; }
 function addDays(date, days){
   const d = new Date(date);
@@ -598,7 +624,8 @@ function showAuth(mode){
 }
 function initAuth(){
   const users = normalizeUsers(getUsers());
-  const session = localStorage.getItem(SESSION_KEY);
+  const session = localStorage.getItem(SESSION_KEY) || localStorage.getItem(LEGACY_SESSION_KEY);
+  if(session && !localStorage.getItem(SESSION_KEY)) localStorage.setItem(SESSION_KEY, session);
   if(session === 'admin'){
     startAdmin();
     return;
@@ -608,7 +635,10 @@ function initAuth(){
     startApp();
     return;
   }
-  if(session) localStorage.removeItem(SESSION_KEY);
+  if(session){
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(LEGACY_SESSION_KEY);
+  }
   document.getElementById('authScreen').classList.remove('hidden');
   document.getElementById('adminShell').classList.add('hidden');
   document.getElementById('appShell').classList.add('hidden');
@@ -631,8 +661,11 @@ function registerUser(){
   const createdAt = new Date().toISOString();
   users[email] = { id, name, email, pass:btoa(pass), initW, height, createdAt, expiresAt:addDays(createdAt, ACCESS_DAYS), blocked:false };
   saveUsers(users);
-  if(firstUser && localStorage.getItem('secabem_data') && !localStorage.getItem('secabem_data_'+id)){
-    localStorage.setItem('secabem_data_'+id, localStorage.getItem('secabem_data'));
+  if(firstUser && localStorage.getItem('forgyato_data') && !localStorage.getItem('forgyato_data_'+id)){
+    localStorage.setItem('forgyato_data_'+id, localStorage.getItem('forgyato_data'));
+  }
+  if(firstUser && localStorage.getItem('secabem_data') && !localStorage.getItem('forgyato_data_'+id)){
+    localStorage.setItem('forgyato_data_'+id, localStorage.getItem('secabem_data'));
   }
   if(firstUser && localStorage.getItem('_dk') && !localStorage.getItem('_dk_'+id)){
     localStorage.setItem('_dk_'+id, localStorage.getItem('_dk'));
@@ -658,6 +691,7 @@ function loginUser(){
 }
 function logout(){
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(LEGACY_SESSION_KEY);
   location.reload();
 }
 function startAdmin(){
@@ -715,6 +749,7 @@ function deleteUser(email){
   const user = users[email];
   if(!user) return;
   if(!confirm(`Excluir definitivamente o cadastro de ${user.name}?`)) return;
+  localStorage.removeItem('forgyato_data_'+user.id);
   localStorage.removeItem('secabem_data_'+user.id);
   localStorage.removeItem('_dk_'+user.id);
   if(localStorage.getItem(SESSION_KEY) === email) localStorage.removeItem(SESSION_KEY);
@@ -741,6 +776,10 @@ function startApp(){
 function saveS(){ localStorage.setItem(userDataKey(), JSON.stringify(S)); }
 function loadS(){
   let r = localStorage.getItem(userDataKey());
+  if(!r && localStorage.getItem(legacyUserDataKey())){
+    r = localStorage.getItem(legacyUserDataKey());
+    localStorage.setItem(userDataKey(), r);
+  }
   if(r){ try{ S = {...S,...JSON.parse(r)}; }catch(e){} }
   S.initW = S.initW || currentUser.initW;
   if(!S.start){ S.start = tod(); saveS(); }
@@ -762,7 +801,7 @@ function salvar(){ saveS(); toast('✅ Progresso salvo!','ok'); }
 function exportar(){
   const b = new Blob([JSON.stringify({user:{name:currentUser.name,email:currentUser.email},data:S},null,2)],{type:'application/json'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(b);
-  a.download='secagem_'+currentUser.name.toLowerCase().replace(/\s+/g,'_')+'.json'; a.click(); toast('📤 Exportado!','ok');
+  a.download='forgyato_'+currentUser.name.toLowerCase().replace(/\s+/g,'_')+'.json'; a.click(); toast('📤 Exportado!','ok');
 }
 function resetar(){
   if(!confirm('Zerar tudo? Essa ação é irreversível.')) return;

@@ -1,0 +1,15 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title id="title">ForGyato</title>
+  <defs>
+    <linearGradient id="g" x1="11" y1="9" x2="116" y2="119" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7C6CFF"/>
+      <stop offset="0.5" stop-color="#00D4AA"/>
+      <stop offset="1" stop-color="#36A3FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#0D0F14"/>
+  <path d="M64 11L110.765 38V92L64 119L17.2346 92V38L64 11Z" fill="#141824" stroke="url(#g)" stroke-width="7"/>
+  <path d="M38 73V39H82C90.2843 39 97 45.7157 97 54C97 62.2843 90.2843 69 82 69H62" stroke="#F3F5FF" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M62 69H88C93.5228 69 98 73.4772 98 79C98 84.5228 93.5228 89 88 89H54" stroke="#00D4AA" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M54 89V55" stroke="#F3F5FF" stroke-width="11" stroke-linecap="round"/>
+</svg>
