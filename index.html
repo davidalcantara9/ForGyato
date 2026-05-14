@@ -701,7 +701,7 @@ async function loadCloudUser(authUser){
       created_at:createdAt,
       expires_at:addDays(createdAt, ACCESS_DAYS),
       blocked:false,
-      role:'user'
+          role:authUser.email === ADMIN_EMAIL ? 'admin' : 'user'
     };
     const inserted = await db().from('profiles').insert(payload).select('*').single();
     if(inserted.error) throw inserted.error;
@@ -733,7 +733,7 @@ async function registerUser(){
   const initW = parseFloat(document.getElementById('regWeight').value);
   const height = parseFloat(document.getElementById('regHeight').value);
   if(!name || !email || !email.includes('@')){ toast('Preencha nome e email válidos','err'); return; }
-  if(email === ADMIN_EMAIL){ toast('Este email é reservado para administração','err'); return; }
+  if(email === ADMIN_EMAIL && !supabaseReady()){ toast('Este email é reservado para administração','err'); return; }
   if(pass.length < 6){ toast('A senha precisa ter pelo menos 6 caracteres','err'); return; }
   if(isNaN(initW)||initW<30||initW>300){ toast('Informe um peso inicial válido','err'); return; }
   if(isNaN(height)||height<1||height>2.5){ toast('Informe uma altura válida','err'); return; }
@@ -756,7 +756,7 @@ async function registerUser(){
           created_at:createdAt,
           expires_at:addDays(createdAt, ACCESS_DAYS),
           blocked:false,
-          role:'user'
+          role:email === ADMIN_EMAIL ? 'admin' : 'user'
         };
         const inserted = await db().from('profiles').insert(payload);
         if(inserted.error && !String(inserted.error.message).includes('duplicate')) throw inserted.error;
