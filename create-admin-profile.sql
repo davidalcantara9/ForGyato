@@ -12,7 +12,12 @@ insert into public.app_users (
   height,
   expires_at,
   blocked,
-  role
+  role,
+  goal,
+  goal_days,
+  strategy,
+  ai_credits,
+  plan_text
 )
 values (
   'Administrador',
@@ -22,11 +27,17 @@ values (
   1.75,
   now() + interval '3650 days',
   false,
-  'admin'
+  'admin',
+  'perder',
+  30,
+  'moderado',
+  50,
+  'Administrador do ForGyato.'
 )
 on conflict (email) do update set
   name = excluded.name,
   password_hash = excluded.password_hash,
   role = 'admin',
   blocked = false,
-  expires_at = now() + interval '3650 days';
+  expires_at = now() + interval '3650 days',
+  ai_credits = greatest(public.app_users.ai_credits, 50);

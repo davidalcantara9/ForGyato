@@ -12,9 +12,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#0d0f14;--s:#151820;--s2:#1c2030;--bd:#252a3a;--a:#6c63ff;--a2:#00d4aa;--a3:#ff6b6b;--a4:#ffd166;--t:#e8eaf0;--m:#8892a4;--r:14px;--rs:8px}
+body[data-theme="light"]{--bg:#f4f7fb;--s:#ffffff;--s2:#eef2f7;--bd:#d8dfeb;--t:#121722;--m:#5f6b7d}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--t);font-family:'Manrope','Segoe UI',system-ui,sans-serif;min-height:100vh;padding-bottom:60px}
-.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top,#182038 0,#0d0f14 55%)}
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top,#182038 0,var(--bg) 55%)}
 .auth.hidden,.app.hidden{display:none}
 .login-card{width:100%;max-width:430px;background:var(--s);border:1px solid var(--bd);border-radius:var(--r);padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .login-card h1{font-size:1.6rem;margin-bottom:6px}.login-card h1 span{color:var(--a2)}
@@ -30,8 +31,8 @@ body{background:var(--bg);color:var(--t);font-family:'Manrope','Segoe UI',system
 .auth-form{display:none}.auth-form.show{display:block}
 .field{margin-bottom:12px}
 .field label{display:block;color:var(--m);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
-.field input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);padding:11px 13px;color:var(--t);font-size:.9rem}
-.field input:focus{outline:none;border-color:var(--a)}
+.field input,.field select{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);padding:11px 13px;color:var(--t);font-size:.9rem}
+.field input:focus,.field select:focus{outline:none;border-color:var(--a)}
 .auth-note{font-size:.75rem;color:var(--m);margin-top:12px;line-height:1.45}
 .hdr{background:linear-gradient(135deg,#1a1040,#0d1a2e);border-bottom:1px solid var(--bd);padding:24px;text-align:center;position:relative}
 .hdr h1{font-size:1.5rem;font-weight:800}.hdr h1 span{color:var(--a2)}
@@ -41,13 +42,14 @@ body{background:var(--bg);color:var(--t);font-family:'Manrope','Segoe UI',system
 .userbar{position:absolute;left:14px;top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .userpill{font-size:.72rem;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid var(--bd);color:var(--t)}
 .logout{font-size:.7rem;padding:4px 9px;border-radius:20px;background:transparent;border:1px solid var(--bd);color:var(--m)}
+.theme-select{font-size:.7rem;padding:4px 8px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid var(--bd);color:var(--t)}
 @media(max-width:640px){.hdr{padding-top:58px}.userbar{right:14px;justify-content:center}.badge{top:46px}.brand-head{gap:9px}.brand-mark{width:36px;height:36px}.brand-head h1{font-size:1.32rem}}
 .wrap{max-width:900px;margin:0 auto;padding:0 16px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
 .card{background:var(--s);border:1px solid var(--bd);border-radius:var(--r);padding:20px;margin-bottom:16px}
 .ct{font-size:.73rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--m);margin-bottom:14px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin:20px 0}
 @media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
 .sc{background:var(--s);border:1px solid var(--bd);border-radius:var(--r);padding:16px;text-align:center}
 .sc .v{font-size:1.8rem;font-weight:800;line-height:1}
@@ -148,7 +150,6 @@ button{cursor:pointer;font-family:inherit;font-size:.85rem;border:none;border-ra
 .admin-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
 .admin-head h1{font-size:1.35rem}
 .admin-head p{color:var(--m);font-size:.84rem;margin-top:4px}
-.admin-alert{background:#1a1a0a;border:1px solid rgba(255,209,102,.35);border-radius:var(--r);padding:14px;margin-bottom:16px;color:var(--a4);font-size:.84rem;line-height:1.55}
 .admin-table{width:100%;border-collapse:collapse;font-size:.82rem}
 .admin-table th,.admin-table td{padding:12px 10px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:middle}
 .admin-table th{color:var(--m);font-size:.72rem;text-transform:uppercase;letter-spacing:.8px}
@@ -212,10 +213,29 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
           <input type="number" id="regHeight" step="0.01" placeholder="Ex: 1.75"/>
         </div>
       </div>
+      <div class="field">
+        <label for="regGoal">Qual é o seu objetivo?</label>
+        <select id="regGoal">
+          <option value="perder">Perder peso</option>
+          <option value="ganhar">Ganhar massa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="regGoalDays">Em quantos dias você precisa chegar nesse objetivo?</label>
+        <input type="number" id="regGoalDays" min="7" max="365" step="1" placeholder="Ex: 30"/>
+      </div>
+      <div class="field">
+        <label for="regStrategy">Nível de estratégia</label>
+        <select id="regStrategy">
+          <option value="tranquilo">Tranquilo</option>
+          <option value="moderado">Moderado</option>
+          <option value="pesado">Pesado</option>
+        </select>
+      </div>
       <button class="bg2" style="width:100%" onclick="registerUser()">Criar conta</button>
     </div>
 
-    <div class="auth-note">Esta versão salva usuários e senhas apenas neste navegador. Cadastros feitos em outros celulares, computadores ou navegadores não aparecem aqui sem um banco de dados central.</div>
+    <div class="auth-note">O acesso usa email e senha cadastrados no ForGyato, sem verificação por email.</div>
 </div>
 </div>
 
@@ -223,6 +243,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
   <div class="hdr">
     <div class="userbar">
       <span class="userpill">Administrador</span>
+      <select class="theme-select" onchange="setTheme(this.value)">
+        <option value="auto">Auto</option>
+        <option value="dark">Escuro</option>
+        <option value="light">Claro</option>
+      </select>
       <button class="logout" onclick="logout()">Sair</button>
     </div>
     <div class="brand-head">
@@ -232,6 +257,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <p>Gerenciamento de cadastros e acessos</p>
   </div>
   <div class="admin-wrap">
+    <div class="api-box show" id="apiBox">
+      <h3>🔑 Token global de IA</h3>
+      <p>Configure a chave da OpenAI usada pelas análises dos usuários. Cada novo usuário começa com 50 consultas de refeição.</p>
+      <div class="api-row">
+        <input type="password" id="apiKey" placeholder="sk-..."/>
+        <button class="bp" onclick="saveKey()">Salvar token</button>
+      </div>
+    </div>
     <div class="admin-head">
       <div>
         <h1>Cadastros</h1>
@@ -239,13 +272,14 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
       </div>
       <button class="bgh sm" onclick="renderAdminUsers()">Atualizar</button>
     </div>
-    <div class="admin-alert">Modo local: este painel mostra apenas cadastros feitos neste mesmo navegador. Para ver usuários reais de outras pessoas, o site precisa ser conectado a um banco de dados/servidor compartilhado.</div>
     <div class="card">
       <table class="admin-table">
         <thead>
           <tr>
             <th>Usuário</th>
             <th>Email</th>
+            <th>Objetivo</th>
+            <th>IA</th>
             <th>Criado em</th>
             <th>Expira em</th>
             <th>Status</th>
@@ -262,53 +296,52 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 <div class="hdr">
   <div class="userbar">
     <span class="userpill" id="userPill">Usuário</span>
+    <select class="theme-select" onchange="setTheme(this.value)">
+      <option value="auto">Auto</option>
+      <option value="dark">Escuro</option>
+      <option value="light">Claro</option>
+    </select>
     <button class="logout" onclick="logout()">Sair</button>
   </div>
   <div class="brand-head">
     <img class="brand-mark" src="images/forgyato-mark.svg?v=2" alt="">
     <h1>ForGyato — <span id="userNameTitle">Seu nome</span></h1>
   </div>
-  <p id="profileLine">Perfil configurável · OMAD · 30 dias</p>
+  <p id="profileLine">Perfil configurável · objetivo personalizado</p>
   <div class="badge" id="badge">⚡ IA offline</div>
 </div>
 
 <div class="wrap">
 
-  <!-- API KEY -->
-  <div class="api-box show" id="apiBox">
-    <h3>🔑 Conectar IA (OpenAI)</h3>
-    <p>Cole sua chave da OpenAI para ativar análise de fotos, coaching personalizado e sugestões inteligentes. A chave fica salva apenas no seu navegador.</p>
-    <div class="api-row">
-      <input type="password" id="apiKey" placeholder="sk-..."/>
-      <button class="bp" onclick="saveKey()">Ativar IA</button>
-      <button class="bgh sm" onclick="document.getElementById('apiBox').classList.remove('show')">✕ Fechar</button>
-    </div>
-  </div>
-
   <!-- STATS -->
   <div class="stats">
-    <div class="sc"><div class="v" id="sDia" style="color:var(--a)">1</div><div class="l">Dia atual</div></div>
+    <div class="sc"><div class="v" id="sDia" style="color:var(--a)">1</div><div class="l">Dias ativos</div></div>
     <div class="sc"><div class="v" id="sPeso" style="color:var(--a2)">—</div><div class="l">Peso kg</div><div class="d" id="sDelta">–</div></div>
     <div class="sc"><div class="v" id="sStreak" style="color:var(--a4)">0</div><div class="l">Sequência 🔥</div></div>
     <div class="sc"><div class="v" id="sPct" style="color:var(--a3)">0%</div><div class="l">Progresso</div></div>
+    <div class="sc"><div class="v" id="sCredits" style="color:#7dd3fc">50</div><div class="l">Consultas IA</div></div>
+  </div>
+
+  <div class="card">
+    <div class="ct">🎯 Plano de ação</div>
+    <div class="ac" id="actionPlan">Seu plano aparece aqui após o cadastro.</div>
   </div>
 
   <!-- PROGRESSO -->
   <div class="card">
-    <div class="ct">📊 Progresso — 30 dias</div>
+    <div class="ct">📊 Progresso do objetivo</div>
     <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--m);margin-bottom:5px">
-      <span>Fase 1 — 7 dias hardcore</span><span id="p1l">0/7</span>
+      <span id="phase1Name">Fase 1 — arranque</span><span id="p1l">0/7</span>
     </div>
     <div class="pb"><div class="pf fr" id="p1b" style="width:0%"></div></div>
     <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--m);margin:12px 0 5px">
-      <span>Fase 2 — 25 dias sustentáveis</span><span id="p2l">0/25</span>
+      <span id="phase2Name">Fase 2 — continuidade</span><span id="p2l">0/25</span>
     </div>
     <div class="pb"><div class="pf fg" id="p2b" style="width:0%"></div></div>
     <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
       <button class="bp sm" onclick="salvar()">💾 Salvar</button>
       <button class="bgh sm" onclick="exportar()">📤 Exportar</button>
       <button class="bdr sm" onclick="resetar()">🗑 Zerar tudo</button>
-      <button class="bgh sm" onclick="document.getElementById('apiBox').classList.add('show')">🔑 Config IA</button>
     </div>
   </div>
 
@@ -354,7 +387,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 
   <!-- CALENDÁRIO -->
   <div class="card">
-    <div class="ct">📅 Calendário — 30 dias</div>
+    <div class="ct">📅 Calendário do objetivo</div>
     <div style="display:flex;gap:14px;font-size:.75rem;flex-wrap:wrap;margin-bottom:8px">
       <span><span style="display:inline-block;width:11px;height:11px;background:#0a2a1a;border:1px solid var(--a2);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Completo</span>
       <span><span style="display:inline-block;width:11px;height:11px;background:#1a1a0a;border:1px solid var(--a4);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Parcial</span>
@@ -558,6 +591,7 @@ let supabaseDb = null;
 
 // ── INIT ──────────────────────────────────────────────────────
 window.onload = async () => {
+  initTheme();
   await initAuth();
 };
 
@@ -587,6 +621,17 @@ function db(){
   if(!supabaseDb) supabaseDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   return supabaseDb;
 }
+async function getSetting(key){
+  if(!supabaseReady()) return localStorage.getItem('forgyato_setting_'+key);
+  const { data, error } = await db().from('app_settings').select('value').eq('key', key).maybeSingle();
+  if(error) throw error;
+  return data?.value || '';
+}
+async function setSetting(key,value){
+  if(!supabaseReady()){ localStorage.setItem('forgyato_setting_'+key,value); return; }
+  const { error } = await db().from('app_settings').upsert({key,value,updated_at:new Date().toISOString()});
+  if(error) throw error;
+}
 function profileFromRow(row){
   return {
     id:row.id,
@@ -598,7 +643,12 @@ function profileFromRow(row){
     createdAt:row.created_at,
     expiresAt:row.expires_at,
     blocked:row.blocked,
-    role:row.role || 'user'
+    role:row.role || 'user',
+    goal:row.goal || 'perder',
+    goalDays:Number(row.goal_days || 30),
+    strategy:row.strategy || 'moderado',
+    aiCredits:Number(row.ai_credits ?? 50),
+    planText:row.plan_text || ''
   };
 }
 async function hashPass(pass){
@@ -629,10 +679,66 @@ function daysLeft(user){
   return Math.ceil(diff/86400000);
 }
 function isExpired(user){ return daysLeft(user) < 0; }
+function goalLabel(goal){ return goal === 'ganhar' ? 'Ganhar massa' : 'Perder peso'; }
+function strategyLabel(strategy){
+  return {tranquilo:'Tranquilo',moderado:'Moderado',pesado:'Pesado'}[strategy] || 'Moderado';
+}
+function buildActionPlan(user){
+  const goal = user.goal || 'perder';
+  const days = Number(user.goalDays || user.goal_days || 30);
+  const strategy = user.strategy || 'moderado';
+  const objetivo = goalLabel(goal).toLowerCase();
+  const ritmo = strategyLabel(strategy).toLowerCase();
+  if(goal === 'perder' && strategy === 'pesado'){
+    const first = days > 7 ? 'Primeiros 7 dias: 1 refeição forte por dia, alta em proteína, vegetais e água alta; zero açúcar, farinha e álcool.' : 'Durante todo o ciclo: 1 refeição forte por dia, alta em proteína, vegetais e água alta; zero açúcar, farinha e álcool.';
+    const rest = days > 7 ? `Dias 8 a ${days}: manter déficit agressivo com 1 a 2 refeições controladas, proteína em todas as refeições, caminhada/treino frequente e flexibilidade mínima.` : '';
+    return `Objetivo: perder peso em ${days} dias.\nEstratégia: pesado.\n${first}\n${rest}\nFoco diário: bater proteína, controlar fome, dormir bem, registrar peso e usar a IA para validar refeições importantes.`;
+  }
+  const base = goal === 'ganhar'
+    ? 'Priorize superávit calórico controlado, proteína alta, treino progressivo e carboidratos ao redor do treino.'
+    : 'Priorize déficit calórico, proteína alta, vegetais, hidratação e constância no registro de peso.';
+  const level = {
+    tranquilo:'Ritmo balanceado, com ajustes leves e alta sustentabilidade.',
+    moderado:'Ritmo firme, com controle consistente e espaço pequeno para flexibilidade.',
+    pesado:'Ritmo acelerado, com regras mais rígidas e revisões frequentes para manter segurança.'
+  }[strategy];
+  return `Objetivo: ${objetivo} em ${days} dias.\nEstratégia: ${ritmo}.\n${base}\n${level}\nFoco diário: cumprir o checklist, registrar refeições, acompanhar evolução e ajustar com base no resultado real.`;
+}
+async function generateActionPlan(user){
+  try{
+    if(!KEY) await loadKey();
+    if(!KEY) return buildActionPlan(user);
+    const resp = await ai([
+      {role:'system',content:'Você cria planos fitness objetivos, práticos e seguros em português.'},
+      {role:'user',content:`Crie um plano de ação para ${goalLabel(user.goal)} em ${user.goalDays} dias com estratégia ${strategyLabel(user.strategy)}. Peso inicial ${user.initW}kg, altura ${user.height}m. Se for perda de peso pesada e prazo maior que 7 dias, use 1 refeição por dia nos primeiros 7 dias e depois uma fase ainda hard, porém um pouco mais flexível. Responda em até 8 linhas, direto e acionável.`}
+    ]);
+    return resp;
+  }catch(e){
+    return buildActionPlan(user);
+  }
+}
+function initTheme(){
+  const theme = localStorage.getItem('forgyato_theme') || 'auto';
+  setTheme(theme, false);
+  matchMedia('(prefers-color-scheme: light)').addEventListener('change', ()=>{
+    if((localStorage.getItem('forgyato_theme') || 'auto') === 'auto') setTheme('auto', false);
+  });
+}
+function setTheme(theme, persist=true){
+  const resolved = theme === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : theme;
+  document.body.dataset.theme = resolved;
+  document.querySelectorAll('.theme-select').forEach(sel=>sel.value=theme);
+  if(persist) localStorage.setItem('forgyato_theme', theme);
+}
 function normalizeUser(user){
   if(!user.createdAt) user.createdAt = new Date().toISOString();
   if(!user.expiresAt) user.expiresAt = addDays(user.createdAt, ACCESS_DAYS);
   if(typeof user.blocked !== 'boolean') user.blocked = false;
+  if(!user.goal) user.goal = 'perder';
+  if(!user.goalDays) user.goalDays = 30;
+  if(!user.strategy) user.strategy = 'moderado';
+  if(typeof user.aiCredits !== 'number') user.aiCredits = 50;
+  if(!user.planText) user.planText = buildActionPlan(user);
   return user;
 }
 function normalizeUsers(users){
@@ -721,11 +827,16 @@ async function registerUser(){
   const pass = document.getElementById('regPass').value;
   const initW = parseFloat(document.getElementById('regWeight').value);
   const height = parseFloat(document.getElementById('regHeight').value);
+  const goal = document.getElementById('regGoal').value;
+  const goalDays = parseInt(document.getElementById('regGoalDays').value,10);
+  const strategy = document.getElementById('regStrategy').value;
   if(!name){ toast('Preencha seu nome','err'); return; }
   if(!email || !email.includes('@')){ toast('Informe um email válido','err'); return; }
   if(pass.length < 6){ toast('A senha precisa ter pelo menos 6 caracteres','err'); return; }
   if(isNaN(initW)||initW<30||initW>300){ toast('Informe um peso inicial válido','err'); return; }
   if(isNaN(height)||height<1||height>2.5){ toast('Informe uma altura válida','err'); return; }
+  if(isNaN(goalDays)||goalDays<7||goalDays>365){ toast('Informe um prazo entre 7 e 365 dias','err'); return; }
+  const planText = await generateActionPlan({goal, goalDays, strategy, initW, height});
   if(supabaseReady()){
     try{
       const exists = await db().from('app_users').select('id').eq('email', email).maybeSingle();
@@ -741,7 +852,12 @@ async function registerUser(){
         created_at:createdAt,
         expires_at:addDays(createdAt, email === ADMIN_EMAIL ? 3650 : ACCESS_DAYS),
         blocked:false,
-        role:email === ADMIN_EMAIL ? 'admin' : 'user'
+        role:email === ADMIN_EMAIL ? 'admin' : 'user',
+        goal,
+        goal_days:goalDays,
+        strategy,
+        ai_credits:50,
+        plan_text:planText
       }).select('*').single();
       if(error) throw error;
       localStorage.setItem(SESSION_KEY, email);
@@ -759,7 +875,7 @@ async function registerUser(){
   const id = userId(email);
   const firstUser = Object.keys(users).length === 0;
   const createdAt = new Date().toISOString();
-  users[email] = { id, name, email, pass:btoa(pass), initW, height, createdAt, expiresAt:addDays(createdAt, ACCESS_DAYS), blocked:false, role:email === ADMIN_EMAIL ? 'admin' : 'user' };
+  users[email] = { id, name, email, pass:btoa(pass), initW, height, createdAt, expiresAt:addDays(createdAt, ACCESS_DAYS), blocked:false, role:email === ADMIN_EMAIL ? 'admin' : 'user', goal, goalDays, strategy, aiCredits:50, planText };
   saveUsers(users);
   if(firstUser && localStorage.getItem('forgyato_data') && !localStorage.getItem('forgyato_data_'+id)){
     localStorage.setItem('forgyato_data_'+id, localStorage.getItem('forgyato_data'));
@@ -816,6 +932,7 @@ function startAdmin(){
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('appShell').classList.add('hidden');
   document.getElementById('adminShell').classList.remove('hidden');
+  loadKey();
   renderAdminUsers();
 }
 function userStatus(user){
@@ -849,6 +966,8 @@ function renderAdminRows(rows){
     return `<tr>
       <td data-label="Usuário">${esc(user.name)}</td>
       <td data-label="Email">${esc(user.email)}</td>
+      <td data-label="Objetivo">${goalLabel(user.goal)}<br><span style="color:var(--m);font-size:.74rem">${user.goalDays} dias · ${strategyLabel(user.strategy)}</span></td>
+      <td data-label="IA">${user.aiCredits} consulta(s)</td>
       <td data-label="Criado em">${fmtDate(user.createdAt)}</td>
       <td data-label="Expira em">${fmtDate(user.expiresAt)}<br><span style="color:var(--m);font-size:.74rem">${leftText}</span></td>
       <td data-label="Status"><span class="status-pill ${status.cls}">${status.label}</span></td>
@@ -909,8 +1028,10 @@ function startApp(){
   const profileParts = [];
   if(currentUser.initW) profileParts.push(`${currentUser.initW} kg`);
   if(currentUser.height) profileParts.push(`${currentUser.height.toLocaleString('pt-BR')} m`);
-  document.getElementById('profileLine').textContent=`${profileParts.join(' · ') || 'Perfil configurável'} · OMAD · 30 dias`;
+  profileParts.push(`${goalLabel(currentUser.goal)} · ${currentUser.goalDays} dias · ${strategyLabel(currentUser.strategy)}`);
+  document.getElementById('profileLine').textContent=profileParts.join(' · ');
   document.getElementById('coachProfileLine').textContent=`O coach usa os dados do perfil cadastrado e o protocolo atual. Pode perguntar sobre fome, treino, motivação, alimentos...`;
+  document.getElementById('actionPlan').textContent=currentUser.planText || buildActionPlan(currentUser);
   S = defaultState();
   loadS(); buildCal(); buildCopos(); renderAlts(); renderLog(); updateStats(); initChart(); loadKey();
 }
@@ -952,18 +1073,26 @@ function resetar(){
 }
 
 // ── API KEY ───────────────────────────────────────────────────
-function saveKey(){
+async function saveKey(){
   const v = document.getElementById('apiKey').value.trim();
   if(!v.startsWith('sk-')){ toast('Chave inválida — deve começar com sk-','err'); return; }
-  KEY = v; localStorage.setItem(userApiKey(), btoa(v));
-  document.getElementById('badge').textContent='✅ IA ativa';
-  document.getElementById('badge').classList.add('on');
-  document.getElementById('apiBox').classList.remove('show');
-  toast('🤖 IA ativada com sucesso!','ok');
+  try{
+    KEY = v;
+    await setSetting('openai_api_key', btoa(v));
+    toast('Token de IA salvo','ok');
+  }catch(e){ toast('Erro ao salvar token: '+e.message,'err'); }
 }
-function loadKey(){
-  const k = localStorage.getItem(userApiKey());
-  if(k){ try{ KEY=atob(k); document.getElementById('badge').textContent='✅ IA ativa'; document.getElementById('badge').classList.add('on'); document.getElementById('apiBox').classList.remove('show'); }catch(e){} }
+async function loadKey(){
+  try{
+    const k = await getSetting('openai_api_key');
+    if(k){
+      KEY=atob(k);
+      const input=document.getElementById('apiKey');
+      if(input) input.value=KEY;
+      const badge=document.getElementById('badge');
+      if(badge){ badge.textContent='✅ IA ativa'; badge.classList.add('on'); }
+    }
+  }catch(e){}
 }
 
 // ── UTILITÁRIOS ───────────────────────────────────────────────
@@ -971,7 +1100,8 @@ function tod(){ return new Date().toISOString().split('T')[0]; }
 function curDay(){
   if(!S.start) return 1;
   const d = Math.floor((new Date()-new Date(S.start))/86400000)+1;
-  return Math.min(Math.max(d,1),30);
+  const total = currentUser?.goalDays || 30;
+  return Math.min(Math.max(d,1),total);
 }
 function dayDate(n){
   const d = new Date(S.start); d.setDate(d.getDate()+n-1);
@@ -988,6 +1118,7 @@ function setBtn(id,loading,orig){
 
 // ── IA ────────────────────────────────────────────────────────
 async function ai(messages, model='gpt-4o'){
+  if(!KEY) await loadKey();
   if(!KEY){ toast('Ative a IA com sua chave OpenAI 🔑','err'); throw new Error('no key'); }
   const r = await fetch('https://api.openai.com/v1/chat/completions',{
     method:'POST',
@@ -998,6 +1129,7 @@ async function ai(messages, model='gpt-4o'){
   const j=await r.json(); return j.choices[0].message.content;
 }
 async function aiVision(messages){
+  if(!KEY) await loadKey();
   if(!KEY){ toast('Ative a IA com sua chave OpenAI 🔑','err'); throw new Error('no key'); }
   const r = await fetch('https://api.openai.com/v1/chat/completions',{
     method:'POST',
@@ -1007,6 +1139,21 @@ async function aiVision(messages){
   if(!r.ok){ const e=await r.json(); throw new Error(e.error?.message||'Erro na API'); }
   const j=await r.json(); return j.choices[0].message.content;
 }
+async function useAiCredit(){
+  if((currentUser?.aiCredits ?? 0) <= 0){ toast('Você não tem mais consultas de IA disponíveis','err'); return false; }
+  currentUser.aiCredits -= 1;
+  if(supabaseReady()){
+    await db().from('app_users').update({ai_credits:currentUser.aiCredits}).eq('email', currentUser.email);
+  }else{
+    const users = getUsers();
+    if(users[currentUser.email]){
+      users[currentUser.email].aiCredits = currentUser.aiCredits;
+      saveUsers(users);
+    }
+  }
+  updateStats();
+  return true;
+}
 
 function sysPrompt(){
   const nome = currentUser?.name || 'usuário';
@@ -1014,16 +1161,20 @@ function sysPrompt(){
   const altura = currentUser?.height;
   const perfil = [
     peso ? `${peso}kg` : null,
-    altura ? `${altura}m` : null
+    altura ? `${altura}m` : null,
+    currentUser?.goal ? `objetivo: ${goalLabel(currentUser.goal)}` : null,
+    currentUser?.goalDays ? `prazo: ${currentUser.goalDays} dias` : null,
+    currentUser?.strategy ? `estratégia: ${strategyLabel(currentUser.strategy)}` : null
   ].filter(Boolean).join(', ') || 'dados físicos não informados';
-  return `Você é coach de emagrecimento de ${nome}. Perfil: ${perfil}, protocolo OMAD de 30 dias (7 dias hardcore + 25 sustentáveis), foco em proteína, zero açúcar e farinha na Fase 1. Seja direto, prático e motivador. Responda sempre em português, máximo 5 parágrafos curtos.`;
+  return `Você é coach fitness de ${nome}. Perfil: ${perfil}. Ajuste as recomendações ao objetivo, prazo e estratégia escolhidos. Seja direto, prático e motivador. Responda sempre em português, máximo 5 parágrafos curtos.`;
 }
 
 // ── CALENDÁRIO ────────────────────────────────────────────────
 function buildCal(){
   const g=document.getElementById('cal'); g.innerHTML='';
   const cd=curDay();
-  for(let d=1;d<=30;d++){
+  const total=currentUser?.goalDays||30;
+  for(let d=1;d<=total;d++){
     const el=document.createElement('div'); el.className='dc';
     const ch=S.checks[dayDate(d)]||{};
     const cnt=Object.values(ch).filter(Boolean).length;
@@ -1133,12 +1284,19 @@ function updateStats(){
     else if(i>0) break;
   }
   document.getElementById('sStreak').textContent=streak;
-  const ph1=Math.min(Math.max(d-1,0),7); const ph2=Math.max(0,Math.min(d-8,25));
-  document.getElementById('p1b').style.width=(ph1/7*100)+'%';
-  document.getElementById('p2b').style.width=(ph2/25*100)+'%';
-  document.getElementById('p1l').textContent=ph1+'/7';
-  document.getElementById('p2l').textContent=ph2+'/25';
-  document.getElementById('sPct').textContent=Math.round((d-1)/30*100)+'%';
+  const totalDays=currentUser?.goalDays||30;
+  const p1Days=Math.min(7,totalDays);
+  const p2Days=Math.max(totalDays-p1Days,1);
+  const ph1=Math.min(Math.max(d-1,0),p1Days);
+  const ph2=Math.max(0,Math.min(d-p1Days-1,p2Days));
+  document.getElementById('phase1Name').textContent=currentUser?.strategy==='pesado'&&currentUser?.goal==='perder'?'Fase 1 — 1 refeição/dia':'Fase 1 — arranque';
+  document.getElementById('phase2Name').textContent=currentUser?.goal==='ganhar'?'Fase 2 — progressão de massa':'Fase 2 — continuidade';
+  document.getElementById('p1b').style.width=(ph1/p1Days*100)+'%';
+  document.getElementById('p2b').style.width=(ph2/p2Days*100)+'%';
+  document.getElementById('p1l').textContent=ph1+'/'+p1Days;
+  document.getElementById('p2l').textContent=ph2+'/'+p2Days;
+  document.getElementById('sPct').textContent=Math.round((d-1)/totalDays*100)+'%';
+  document.getElementById('sCredits').textContent=currentUser?.aiCredits ?? 0;
 }
 
 // ── FASES ─────────────────────────────────────────────────────
@@ -1170,6 +1328,7 @@ function limparFoto(){
 }
 async function analisarFoto(){
   if(!photoB64){ toast('Selecione uma foto primeiro','err'); return; }
+  if((currentUser?.aiCredits ?? 0) <= 0){ toast('Você não tem mais consultas de IA disponíveis','err'); return; }
   setBtn('btnFoto',true,'🤖 Analisar com IA');
   const box=document.getElementById('fotoBox'); const cnt=document.getElementById('fotoContent');
   box.classList.add('show'); cnt.textContent='Analisando sua foto...';
@@ -1179,6 +1338,7 @@ async function analisarFoto(){
       {type:'image_url',image_url:{url:'data:image/jpeg;base64,'+photoB64}}
     ]}]);
     cnt.textContent=resp;
+    await useAiCredit();
     addLog('Refeição analisada por foto 📸','ok');
   }catch(e){ cnt.textContent='❌ Erro: '+e.message; }
   setBtn('btnFoto',false,'🤖 Analisar com IA');
@@ -1188,6 +1348,7 @@ async function analisarFoto(){
 async function avaliarRefeicao(){
   const txt=document.getElementById('mealTxt').value.trim();
   if(!txt){ toast('Descreva a refeição primeiro','err'); return; }
+  if((currentUser?.aiCredits ?? 0) <= 0){ toast('Você não tem mais consultas de IA disponíveis','err'); return; }
   setBtn('btnMeal',true,'🤖 Avaliar com IA');
   const box=document.getElementById('mealBox'); const cnt=document.getElementById('mealContent');
   box.classList.add('show'); cnt.textContent='Avaliando sua refeição...';
@@ -1197,6 +1358,7 @@ async function avaliarRefeicao(){
       {role:'user',content:`Avaliei minha refeição OMAD: "${txt}"\n\nMe dê:\n1. 📊 Estimativa de calorias e macros (proteína/carbo/gordura)\n2. ✅ ou ❌ Se está dentro do protocolo\n3. 🏆 Nota de 1 a 10\n4. 💡 O que melhorar na próxima refeição`}
     ]);
     cnt.textContent=resp;
+    await useAiCredit();
     const nota=resp.match(/(\d+)\s*\/?\s*10/); const n=nota?parseInt(nota[1]):5;
     const score=n>=8?'bom':n>=5?'ok':'ruim';
     addLog(txt,score); document.getElementById('mealTxt').value='';
