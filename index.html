@@ -135,6 +135,22 @@ button{cursor:pointer;font-family:inherit;font-size:.85rem;border:none;border-ra
 .dopt:hover{border-color:var(--a)}
 .dopt h4{font-size:.88rem;font-weight:700;margin-bottom:6px}
 .dopt p{font-size:.78rem;color:var(--m);line-height:1.5}
+.admin-shell{min-height:100vh;background:var(--bg)}
+.admin-shell.hidden{display:none}
+.admin-wrap{max-width:1000px;margin:0 auto;padding:24px 16px}
+.admin-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.admin-head h1{font-size:1.35rem}
+.admin-head p{color:var(--m);font-size:.84rem;margin-top:4px}
+.admin-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.admin-table th,.admin-table td{padding:12px 10px;border-bottom:1px solid var(--bd);text-align:left;vertical-align:middle}
+.admin-table th{color:var(--m);font-size:.72rem;text-transform:uppercase;letter-spacing:.8px}
+.admin-table td{color:var(--t)}
+.admin-actions{display:flex;gap:8px;flex-wrap:wrap}
+.status-pill{display:inline-block;border-radius:20px;padding:4px 9px;font-size:.72rem;font-weight:700}
+.status-pill.ok{background:#0a2a1a;color:var(--a2)}
+.status-pill.blocked{background:#2a0a0a;color:var(--a3)}
+.status-pill.expired{background:#1a1a0a;color:var(--a4)}
+@media(max-width:760px){.admin-table,.admin-table tbody,.admin-table tr,.admin-table td{display:block}.admin-table thead{display:none}.admin-table tr{border:1px solid var(--bd);border-radius:var(--r);padding:8px;margin-bottom:10px;background:var(--s2)}.admin-table td{border-bottom:none;padding:7px 4px}.admin-table td::before{content:attr(data-label);display:block;color:var(--m);font-size:.68rem;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}}
 input[type=number]{-moz-appearance:textfield}
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 </style>
@@ -192,6 +208,41 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     </div>
 
     <div class="auth-note">Esta versão salva usuários e senhas apenas neste navegador. É ótima para testar perfis, mas uma publicação real precisa de autenticação no servidor.</div>
+</div>
+</div>
+
+<div class="admin-shell hidden" id="adminShell">
+  <div class="hdr">
+    <div class="userbar">
+      <span class="userpill">Administrador</span>
+      <button class="logout" onclick="logout()">Sair</button>
+    </div>
+    <h1>SECABEM — <span>Admin</span></h1>
+    <p>Gerenciamento de cadastros e acessos</p>
+  </div>
+  <div class="admin-wrap">
+    <div class="admin-head">
+      <div>
+        <h1>Cadastros</h1>
+        <p id="adminSummary">Nenhum usuário cadastrado.</p>
+      </div>
+      <button class="bgh sm" onclick="renderAdminUsers()">Atualizar</button>
+    </div>
+    <div class="card">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Usuário</th>
+            <th>Email</th>
+            <th>Criado em</th>
+            <th>Expira em</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="adminUsers"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -473,6 +524,9 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 // ── ESTADO ────────────────────────────────────────────────────
 const USERS_KEY = 'secagem_users';
 const SESSION_KEY = 'secagem_session';
+const ADMIN_EMAIL = 'admin@secabem.com';
+const ADMIN_PASS = 'admin123';
+const ACCESS_DAYS = 365;
 let currentUser = null;
 function defaultState(){
   return { start:null, initW:currentUser?.initW||null, weights:{}, checks:{}, water:{}, meals:{}, alts:[] };
@@ -496,6 +550,45 @@ function normEmail(v){ return v.trim().toLowerCase(); }
 function userId(email){ return btoa(email).replace(/=+$/,'').replace(/\W/g,''); }
 function userDataKey(){ return 'secabem_data_'+currentUser.id; }
 function userApiKey(){ return '_dk_'+currentUser.id; }
+function addDays(date, days){
+  const d = new Date(date);
+  d.setDate(d.getDate()+days);
+  return d.toISOString();
+}
+function fmtDate(v){
+  if(!v) return '-';
+  return new Date(v).toLocaleDateString('pt-BR');
+}
+function esc(v){
+  return String(v ?? '').replace(/[&<>"']/g, ch=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[ch]));
+}
+function daysLeft(user){
+  const diff = new Date(user.expiresAt)-new Date();
+  return Math.ceil(diff/86400000);
+}
+function isExpired(user){ return daysLeft(user) < 0; }
+function normalizeUser(user){
+  if(!user.createdAt) user.createdAt = new Date().toISOString();
+  if(!user.expiresAt) user.expiresAt = addDays(user.createdAt, ACCESS_DAYS);
+  if(typeof user.blocked !== 'boolean') user.blocked = false;
+  return user;
+}
+function normalizeUsers(users){
+  let changed = false;
+  Object.keys(users).forEach(email=>{
+    const before = JSON.stringify(users[email]);
+    users[email] = normalizeUser(users[email]);
+    if(JSON.stringify(users[email]) !== before) changed = true;
+  });
+  if(changed) saveUsers(users);
+  return users;
+}
 function showAuth(mode){
   const login = mode === 'login';
   document.getElementById('loginForm').classList.toggle('show', login);
@@ -504,14 +597,20 @@ function showAuth(mode){
   document.getElementById('registerTab').classList.toggle('on', !login);
 }
 function initAuth(){
-  const users = getUsers();
+  const users = normalizeUsers(getUsers());
   const session = localStorage.getItem(SESSION_KEY);
-  if(session && users[session]){
+  if(session === 'admin'){
+    startAdmin();
+    return;
+  }
+  if(session && users[session] && !users[session].blocked && !isExpired(users[session])){
     currentUser = users[session];
     startApp();
     return;
   }
+  if(session) localStorage.removeItem(SESSION_KEY);
   document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('adminShell').classList.add('hidden');
   document.getElementById('appShell').classList.add('hidden');
 }
 function registerUser(){
@@ -521,14 +620,16 @@ function registerUser(){
   const initW = parseFloat(document.getElementById('regWeight').value);
   const height = parseFloat(document.getElementById('regHeight').value);
   if(!name || !email || !email.includes('@')){ toast('Preencha nome e email válidos','err'); return; }
+  if(email === ADMIN_EMAIL){ toast('Este email é reservado para administração','err'); return; }
   if(pass.length < 6){ toast('A senha precisa ter pelo menos 6 caracteres','err'); return; }
   if(isNaN(initW)||initW<30||initW>300){ toast('Informe um peso inicial válido','err'); return; }
   if(isNaN(height)||height<1||height>2.5){ toast('Informe uma altura válida','err'); return; }
-  const users = getUsers();
+  const users = normalizeUsers(getUsers());
   if(users[email]){ toast('Este email já tem conta','err'); return; }
   const id = userId(email);
   const firstUser = Object.keys(users).length === 0;
-  users[email] = { id, name, email, pass:btoa(pass), initW, height, createdAt:new Date().toISOString() };
+  const createdAt = new Date().toISOString();
+  users[email] = { id, name, email, pass:btoa(pass), initW, height, createdAt, expiresAt:addDays(createdAt, ACCESS_DAYS), blocked:false };
   saveUsers(users);
   if(firstUser && localStorage.getItem('secabem_data') && !localStorage.getItem('secabem_data_'+id)){
     localStorage.setItem('secabem_data_'+id, localStorage.getItem('secabem_data'));
@@ -543,14 +644,84 @@ function registerUser(){
 function loginUser(){
   const email = normEmail(document.getElementById('loginEmail').value);
   const pass = document.getElementById('loginPass').value;
-  const users = getUsers();
+  if(email === ADMIN_EMAIL && pass === ADMIN_PASS){
+    localStorage.setItem(SESSION_KEY, 'admin');
+    startAdmin();
+    return;
+  }
+  const users = normalizeUsers(getUsers());
   if(!users[email] || users[email].pass !== btoa(pass)){ toast('Email ou senha inválidos','err'); return; }
+  if(users[email].blocked){ toast('Este cadastro está bloqueado','err'); return; }
+  if(isExpired(users[email])){ toast('Este cadastro expirou','err'); return; }
   localStorage.setItem(SESSION_KEY, email);
   location.reload();
 }
 function logout(){
   localStorage.removeItem(SESSION_KEY);
   location.reload();
+}
+function startAdmin(){
+  currentUser = null;
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.add('hidden');
+  document.getElementById('adminShell').classList.remove('hidden');
+  renderAdminUsers();
+}
+function userStatus(user){
+  if(user.blocked) return {label:'Bloqueado', cls:'blocked'};
+  if(isExpired(user)) return {label:'Expirado', cls:'expired'};
+  return {label:'Ativo', cls:'ok'};
+}
+function renderAdminUsers(){
+  const users = normalizeUsers(getUsers());
+  const rows = Object.values(users).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const el = document.getElementById('adminUsers');
+  const active = rows.filter(u=>!u.blocked && !isExpired(u)).length;
+  document.getElementById('adminSummary').textContent=`${rows.length} cadastro(s), ${active} ativo(s). Cada cadastro tem ${ACCESS_DAYS} dias de uso.`;
+  if(!rows.length){
+    el.innerHTML='<tr><td colspan="6" data-label="Cadastros" style="color:var(--m)">Nenhum usuário cadastrado.</td></tr>';
+    return;
+  }
+  el.innerHTML=rows.map(user=>{
+    const status = userStatus(user);
+    const left = daysLeft(user);
+    const leftText = left >= 0 ? `${left} dia(s) restantes` : 'prazo encerrado';
+    return `<tr>
+      <td data-label="Usuário">${esc(user.name)}</td>
+      <td data-label="Email">${esc(user.email)}</td>
+      <td data-label="Criado em">${fmtDate(user.createdAt)}</td>
+      <td data-label="Expira em">${fmtDate(user.expiresAt)}<br><span style="color:var(--m);font-size:.74rem">${leftText}</span></td>
+      <td data-label="Status"><span class="status-pill ${status.cls}">${status.label}</span></td>
+      <td data-label="Ações"><div class="admin-actions">
+        <button class="bgh sm" onclick="toggleBlockUser('${encodeURIComponent(user.email)}')">${user.blocked?'Desbloquear':'Bloquear'}</button>
+        <button class="bdr sm" onclick="deleteUser('${encodeURIComponent(user.email)}')">Excluir</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function toggleBlockUser(email){
+  email = decodeURIComponent(email);
+  const users = normalizeUsers(getUsers());
+  if(!users[email]) return;
+  users[email].blocked = !users[email].blocked;
+  saveUsers(users);
+  if(localStorage.getItem(SESSION_KEY) === email) localStorage.removeItem(SESSION_KEY);
+  renderAdminUsers();
+  toast(users[email].blocked?'Cadastro bloqueado':'Cadastro desbloqueado','ok');
+}
+function deleteUser(email){
+  email = decodeURIComponent(email);
+  const users = normalizeUsers(getUsers());
+  const user = users[email];
+  if(!user) return;
+  if(!confirm(`Excluir definitivamente o cadastro de ${user.name}?`)) return;
+  localStorage.removeItem('secabem_data_'+user.id);
+  localStorage.removeItem('_dk_'+user.id);
+  if(localStorage.getItem(SESSION_KEY) === email) localStorage.removeItem(SESSION_KEY);
+  delete users[email];
+  saveUsers(users);
+  renderAdminUsers();
+  toast('Cadastro excluído','ok');
 }
 function startApp(){
   document.getElementById('authScreen').classList.add('hidden');
