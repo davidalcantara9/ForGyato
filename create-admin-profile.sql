@@ -1,4 +1,5 @@
--- Use este SQL depois de criar o usuario admin em Authentication > Users.
+-- Use este SQL depois de criar o usuario admin em Authentication > Users
+-- ou depois de criar a conta admin pelo formulario do site.
 -- Email padrao do admin: admin@forgyato.com
 
 insert into public.profiles (

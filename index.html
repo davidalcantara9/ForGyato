@@ -745,22 +745,6 @@ async function registerUser(){
         options:{ data:{ name, initial_weight:initW, height } }
       });
       if(error) throw error;
-      if(data.user){
-        const createdAt = new Date().toISOString();
-        const payload = {
-          id:data.user.id,
-          name,
-          email,
-          initial_weight:initW,
-          height,
-          created_at:createdAt,
-          expires_at:addDays(createdAt, ACCESS_DAYS),
-          blocked:false,
-          role:email === ADMIN_EMAIL ? 'admin' : 'user'
-        };
-        const inserted = await db().from('profiles').insert(payload);
-        if(inserted.error && !String(inserted.error.message).includes('duplicate')) throw inserted.error;
-      }
       toast(data.session?'Conta criada! Entrando...':'Conta criada! Confirme seu email antes de entrar.','ok');
       if(data.session) setTimeout(()=>location.reload(),500);
       return;

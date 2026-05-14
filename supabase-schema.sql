@@ -26,6 +26,61 @@ as $$
   );
 $$;
 
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (
+    id,
+    name,
+    email,
+    initial_weight,
+    height,
+    expires_at,
+    blocked,
+    role
+  )
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    new.email,
+    coalesce((new.raw_user_meta_data->>'initial_weight')::numeric, 80),
+    coalesce((new.raw_user_meta_data->>'height')::numeric, 1.75),
+    case
+      when new.email = 'admin@forgyato.com' then now() + interval '3650 days'
+      else now() + interval '365 days'
+    end,
+    false,
+    case
+      when new.email = 'admin@forgyato.com' then 'admin'
+      else 'user'
+    end
+  )
+  on conflict (id) do update set
+    name = excluded.name,
+    email = excluded.email,
+    role = case
+      when excluded.email = 'admin@forgyato.com' then 'admin'
+      else public.profiles.role
+    end,
+    blocked = false,
+    expires_at = case
+      when excluded.email = 'admin@forgyato.com' then now() + interval '3650 days'
+      else public.profiles.expires_at
+    end;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function public.handle_new_user();
+
 drop policy if exists "profiles_select_own_or_admin" on public.profiles;
 create policy "profiles_select_own_or_admin"
 on public.profiles
