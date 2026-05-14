@@ -4,11 +4,12 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>ForGyato</title>
-<link rel="icon" href="images/forgyato-mark.svg" type="image/svg+xml">
+<link rel="icon" href="images/forgyato-mark.svg?v=2" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#0d0f14;--s:#151820;--s2:#1c2030;--bd:#252a3a;--a:#6c63ff;--a2:#00d4aa;--a3:#ff6b6b;--a4:#ffd166;--t:#e8eaf0;--m:#8892a4;--r:14px;--rs:8px}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -168,7 +169,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 
 <div class="auth" id="authScreen">
   <div class="login-card">
-    <img class="brand-login" src="images/forgyato-logo.svg" alt="ForGyato">
+    <img class="brand-login" src="images/forgyato-logo.svg?v=2" alt="ForGyato">
     <p>Entre no seu perfil para acompanhar peso, checklist, água, refeições e IA com dados separados por usuário.</p>
 
     <div class="auth-tabs">
@@ -225,7 +226,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
       <button class="logout" onclick="logout()">Sair</button>
     </div>
     <div class="brand-head">
-      <img class="brand-mark" src="images/forgyato-mark.svg" alt="">
+      <img class="brand-mark" src="images/forgyato-mark.svg?v=2" alt="">
       <h1>ForGyato — <span>Admin</span></h1>
     </div>
     <p>Gerenciamento de cadastros e acessos</p>
@@ -264,7 +265,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <button class="logout" onclick="logout()">Sair</button>
   </div>
   <div class="brand-head">
-    <img class="brand-mark" src="images/forgyato-mark.svg" alt="">
+    <img class="brand-mark" src="images/forgyato-mark.svg?v=2" alt="">
     <h1>ForGyato — <span id="userNameTitle">Seu nome</span></h1>
   </div>
   <p id="profileLine">Perfil configurável · OMAD · 30 dias</p>
@@ -543,6 +544,8 @@ const LEGACY_SESSION_KEY = 'secagem_session';
 const ADMIN_EMAIL = 'admin@forgyato.com';
 const ADMIN_PASS = 'admin123';
 const ACCESS_DAYS = 365;
+const SUPABASE_URL = 'https://ugqczgsgltdheqdkbamn.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_z5cLoSf3hLyRAeewDKQ6YQ_IBuf_JlA';
 let currentUser = null;
 function defaultState(){
   return { start:null, initW:currentUser?.initW||null, weights:{}, checks:{}, water:{}, meals:{}, alts:[] };
@@ -551,10 +554,11 @@ let S = defaultState();
 let KEY = null;
 let photoB64 = null;
 let wChart = null;
+let supabaseDb = null;
 
 // ── INIT ──────────────────────────────────────────────────────
-window.onload = () => {
-  initAuth();
+window.onload = async () => {
+  await initAuth();
 };
 
 // ── LOGIN ─────────────────────────────────────────────────────
@@ -576,6 +580,27 @@ function userId(email){ return btoa(email).replace(/=+$/,'').replace(/\W/g,''); 
 function userDataKey(){ return 'forgyato_data_'+currentUser.id; }
 function legacyUserDataKey(){ return 'secabem_data_'+currentUser.id; }
 function userApiKey(){ return '_dk_'+currentUser.id; }
+function supabaseReady(){
+  return SUPABASE_URL.startsWith('https://') && SUPABASE_ANON_KEY.length > 20 && window.supabase;
+}
+function db(){
+  if(!supabaseDb) supabaseDb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return supabaseDb;
+}
+function profileFromRow(row){
+  return {
+    id:row.id,
+    name:row.name,
+    email:row.email,
+    pass:'',
+    initW:Number(row.initial_weight),
+    height:Number(row.height),
+    createdAt:row.created_at,
+    expiresAt:row.expires_at,
+    blocked:row.blocked,
+    role:row.role || 'user'
+  };
+}
 function addDays(date, days){
   const d = new Date(date);
   d.setDate(d.getDate()+days);
@@ -622,7 +647,11 @@ function showAuth(mode){
   document.getElementById('loginTab').classList.toggle('on', login);
   document.getElementById('registerTab').classList.toggle('on', !login);
 }
-function initAuth(){
+async function initAuth(){
+  if(supabaseReady()){
+    await initCloudAuth();
+    return;
+  }
   const users = normalizeUsers(getUsers());
   const session = localStorage.getItem(SESSION_KEY) || localStorage.getItem(LEGACY_SESSION_KEY);
   if(session && !localStorage.getItem(SESSION_KEY)) localStorage.setItem(SESSION_KEY, session);
@@ -643,7 +672,61 @@ function initAuth(){
   document.getElementById('adminShell').classList.add('hidden');
   document.getElementById('appShell').classList.add('hidden');
 }
-function registerUser(){
+async function initCloudAuth(){
+  try{
+    const { data:{ session } } = await db().auth.getSession();
+    if(session?.user){
+      await loadCloudUser(session.user);
+      return;
+    }
+  }catch(e){
+    toast('Erro ao conectar ao Supabase: '+e.message,'err');
+  }
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('adminShell').classList.add('hidden');
+  document.getElementById('appShell').classList.add('hidden');
+}
+async function loadCloudUser(authUser){
+  let { data:profile, error } = await db().from('profiles').select('*').eq('id', authUser.id).maybeSingle();
+  if(error) throw error;
+  if(!profile){
+    const meta = authUser.user_metadata || {};
+    const createdAt = new Date().toISOString();
+    const payload = {
+      id:authUser.id,
+      name:meta.name || authUser.email.split('@')[0],
+      email:authUser.email,
+      initial_weight:meta.initial_weight || 80,
+      height:meta.height || 1.75,
+      created_at:createdAt,
+      expires_at:addDays(createdAt, ACCESS_DAYS),
+      blocked:false,
+      role:'user'
+    };
+    const inserted = await db().from('profiles').insert(payload).select('*').single();
+    if(inserted.error) throw inserted.error;
+    profile = inserted.data;
+  }
+  currentUser = profileFromRow(profile);
+  if(currentUser.role === 'admin'){
+    startAdmin();
+    return;
+  }
+  if(currentUser.blocked){
+    await db().auth.signOut();
+    toast('Este cadastro está bloqueado','err');
+    initAuth();
+    return;
+  }
+  if(isExpired(currentUser)){
+    await db().auth.signOut();
+    toast('Este cadastro expirou','err');
+    initAuth();
+    return;
+  }
+  startApp();
+}
+async function registerUser(){
   const name = document.getElementById('regName').value.trim();
   const email = normEmail(document.getElementById('regEmail').value);
   const pass = document.getElementById('regPass').value;
@@ -654,6 +737,38 @@ function registerUser(){
   if(pass.length < 6){ toast('A senha precisa ter pelo menos 6 caracteres','err'); return; }
   if(isNaN(initW)||initW<30||initW>300){ toast('Informe um peso inicial válido','err'); return; }
   if(isNaN(height)||height<1||height>2.5){ toast('Informe uma altura válida','err'); return; }
+  if(supabaseReady()){
+    try{
+      const { data, error } = await db().auth.signUp({
+        email,
+        password:pass,
+        options:{ data:{ name, initial_weight:initW, height } }
+      });
+      if(error) throw error;
+      if(data.user){
+        const createdAt = new Date().toISOString();
+        const payload = {
+          id:data.user.id,
+          name,
+          email,
+          initial_weight:initW,
+          height,
+          created_at:createdAt,
+          expires_at:addDays(createdAt, ACCESS_DAYS),
+          blocked:false,
+          role:'user'
+        };
+        const inserted = await db().from('profiles').insert(payload);
+        if(inserted.error && !String(inserted.error.message).includes('duplicate')) throw inserted.error;
+      }
+      toast(data.session?'Conta criada! Entrando...':'Conta criada! Confirme seu email antes de entrar.','ok');
+      if(data.session) setTimeout(()=>location.reload(),500);
+      return;
+    }catch(e){
+      toast('Erro no cadastro: '+e.message,'err');
+      return;
+    }
+  }
   const users = normalizeUsers(getUsers());
   if(users[email]){ toast('Este email já tem conta','err'); return; }
   const id = userId(email);
@@ -674,9 +789,20 @@ function registerUser(){
   toast('Conta criada! Entrando...','ok');
   setTimeout(()=>location.reload(),500);
 }
-function loginUser(){
+async function loginUser(){
   const email = normEmail(document.getElementById('loginEmail').value);
   const pass = document.getElementById('loginPass').value;
+  if(supabaseReady()){
+    try{
+      const { data, error } = await db().auth.signInWithPassword({ email, password:pass });
+      if(error) throw error;
+      await loadCloudUser(data.user);
+      return;
+    }catch(e){
+      toast('Email ou senha inválidos','err');
+      return;
+    }
+  }
   if(email === ADMIN_EMAIL && pass === ADMIN_PASS){
     localStorage.setItem(SESSION_KEY, 'admin');
     startAdmin();
@@ -689,7 +815,8 @@ function loginUser(){
   localStorage.setItem(SESSION_KEY, email);
   location.reload();
 }
-function logout(){
+async function logout(){
+  if(supabaseReady()) await db().auth.signOut();
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(LEGACY_SESSION_KEY);
   location.reload();
@@ -706,9 +833,18 @@ function userStatus(user){
   if(isExpired(user)) return {label:'Expirado', cls:'expired'};
   return {label:'Ativo', cls:'ok'};
 }
-function renderAdminUsers(){
+async function renderAdminUsers(){
+  if(supabaseReady()){
+    const { data:rows, error } = await db().from('profiles').select('*').order('created_at', { ascending:false });
+    if(error){ toast('Erro ao carregar cadastros: '+error.message,'err'); return; }
+    renderAdminRows((rows || []).map(profileFromRow));
+    return;
+  }
   const users = normalizeUsers(getUsers());
   const rows = Object.values(users).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  renderAdminRows(rows);
+}
+function renderAdminRows(rows){
   const el = document.getElementById('adminUsers');
   const active = rows.filter(u=>!u.blocked && !isExpired(u)).length;
   document.getElementById('adminSummary').textContent=`${rows.length} cadastro(s), ${active} ativo(s). Cada cadastro tem ${ACCESS_DAYS} dias de uso.`;
@@ -733,8 +869,17 @@ function renderAdminUsers(){
     </tr>`;
   }).join('');
 }
-function toggleBlockUser(email){
+async function toggleBlockUser(email){
   email = decodeURIComponent(email);
+  if(supabaseReady()){
+    const { data:user, error:fetchError } = await db().from('profiles').select('blocked').eq('email', email).single();
+    if(fetchError){ toast('Cadastro não encontrado','err'); return; }
+    const { error } = await db().from('profiles').update({ blocked:!user.blocked }).eq('email', email);
+    if(error){ toast('Erro ao atualizar cadastro: '+error.message,'err'); return; }
+    await renderAdminUsers();
+    toast(!user.blocked?'Cadastro bloqueado':'Cadastro desbloqueado','ok');
+    return;
+  }
   const users = normalizeUsers(getUsers());
   if(!users[email]) return;
   users[email].blocked = !users[email].blocked;
@@ -743,8 +888,16 @@ function toggleBlockUser(email){
   renderAdminUsers();
   toast(users[email].blocked?'Cadastro bloqueado':'Cadastro desbloqueado','ok');
 }
-function deleteUser(email){
+async function deleteUser(email){
   email = decodeURIComponent(email);
+  if(supabaseReady()){
+    if(!confirm(`Excluir o cadastro de ${email}? O login Auth continuará existindo, mas ficará sem acesso ao app.`)) return;
+    const { error } = await db().from('profiles').delete().eq('email', email);
+    if(error){ toast('Erro ao excluir cadastro: '+error.message,'err'); return; }
+    await renderAdminUsers();
+    toast('Cadastro excluído','ok');
+    return;
+  }
   const users = normalizeUsers(getUsers());
   const user = users[email];
   if(!user) return;
