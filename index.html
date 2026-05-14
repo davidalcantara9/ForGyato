@@ -541,7 +541,7 @@ const USERS_KEY = 'forgyato_users';
 const LEGACY_USERS_KEY = 'secagem_users';
 const SESSION_KEY = 'forgyato_session';
 const LEGACY_SESSION_KEY = 'secagem_session';
-const ADMIN_EMAIL = 'admin@forgyato.com';
+const ADMIN_EMAIL = 'davidalcantara9@hotmail.com';
 const ADMIN_PASS = 'admin123';
 const ACCESS_DAYS = 365;
 const SUPABASE_URL = 'https://ugqczgsgltdheqdkbamn.supabase.co';
@@ -591,7 +591,7 @@ function profileFromRow(row){
   return {
     id:row.id,
     name:row.name,
-    email:row.email,
+    email:row.email || '',
     pass:'',
     initW:Number(row.initial_weight),
     height:Number(row.height),
@@ -600,6 +600,11 @@ function profileFromRow(row){
     blocked:row.blocked,
     role:row.role || 'user'
   };
+}
+async function hashPass(pass){
+  const data = new TextEncoder().encode('forgyato:'+pass);
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 function addDays(date, days){
   const d = new Date(date);
@@ -674,9 +679,15 @@ async function initAuth(){
 }
 async function initCloudAuth(){
   try{
-    const { data:{ session } } = await db().auth.getSession();
-    if(session?.user){
-      await loadCloudUser(session.user);
+    const session = localStorage.getItem(SESSION_KEY);
+    if(session){
+      const { data:profile, error } = await db().from('app_users').select('*').eq('email', session).maybeSingle();
+      if(error) throw error;
+      if(profile){
+        await loadCloudUser(profile);
+        return;
+      }
+      localStorage.removeItem(SESSION_KEY);
       return;
     }
   }catch(e){
@@ -686,40 +697,18 @@ async function initCloudAuth(){
   document.getElementById('adminShell').classList.add('hidden');
   document.getElementById('appShell').classList.add('hidden');
 }
-async function loadCloudUser(authUser){
-  let { data:profile, error } = await db().from('profiles').select('*').eq('id', authUser.id).maybeSingle();
-  if(error) throw error;
-  if(!profile){
-    const meta = authUser.user_metadata || {};
-    const createdAt = new Date().toISOString();
-    const payload = {
-      id:authUser.id,
-      name:meta.name || authUser.email.split('@')[0],
-      email:authUser.email,
-      initial_weight:meta.initial_weight || 80,
-      height:meta.height || 1.75,
-      created_at:createdAt,
-      expires_at:addDays(createdAt, ACCESS_DAYS),
-      blocked:false,
-          role:authUser.email === ADMIN_EMAIL ? 'admin' : 'user'
-    };
-    const inserted = await db().from('profiles').insert(payload).select('*').single();
-    if(inserted.error) throw inserted.error;
-    profile = inserted.data;
-  }
+async function loadCloudUser(profile){
   currentUser = profileFromRow(profile);
   if(currentUser.role === 'admin'){
     startAdmin();
     return;
   }
   if(currentUser.blocked){
-    await db().auth.signOut();
     toast('Este cadastro está bloqueado','err');
     initAuth();
     return;
   }
   if(isExpired(currentUser)){
-    await db().auth.signOut();
     toast('Este cadastro expirou','err');
     initAuth();
     return;
@@ -732,21 +721,33 @@ async function registerUser(){
   const pass = document.getElementById('regPass').value;
   const initW = parseFloat(document.getElementById('regWeight').value);
   const height = parseFloat(document.getElementById('regHeight').value);
-  if(!name || !email || !email.includes('@')){ toast('Preencha nome e email válidos','err'); return; }
-  if(email === ADMIN_EMAIL && !supabaseReady()){ toast('Este email é reservado para administração','err'); return; }
+  if(!name){ toast('Preencha seu nome','err'); return; }
+  if(!email || !email.includes('@')){ toast('Informe um email válido','err'); return; }
   if(pass.length < 6){ toast('A senha precisa ter pelo menos 6 caracteres','err'); return; }
   if(isNaN(initW)||initW<30||initW>300){ toast('Informe um peso inicial válido','err'); return; }
   if(isNaN(height)||height<1||height>2.5){ toast('Informe uma altura válida','err'); return; }
   if(supabaseReady()){
     try{
-      const { data, error } = await db().auth.signUp({
+      const exists = await db().from('app_users').select('id').eq('email', email).maybeSingle();
+      if(exists.error) throw exists.error;
+      if(exists.data){ toast('Este email já tem conta','err'); return; }
+      const createdAt = new Date().toISOString();
+      const { data:user, error } = await db().from('app_users').insert({
+        name,
         email,
-        password:pass,
-        options:{ data:{ name, initial_weight:initW, height } }
-      });
+        password_hash:await hashPass(pass),
+        initial_weight:initW,
+        height,
+        created_at:createdAt,
+        expires_at:addDays(createdAt, email === ADMIN_EMAIL ? 3650 : ACCESS_DAYS),
+        blocked:false,
+        role:email === ADMIN_EMAIL ? 'admin' : 'user'
+      }).select('*').single();
       if(error) throw error;
-      toast(data.session?'Conta criada! Entrando...':'Conta criada! Confirme seu email antes de entrar.','ok');
-      if(data.session) setTimeout(()=>location.reload(),500);
+      localStorage.setItem(SESSION_KEY, email);
+      currentUser = profileFromRow(user);
+      toast('Conta criada! Entrando...','ok');
+      setTimeout(()=>location.reload(),500);
       return;
     }catch(e){
       toast('Erro no cadastro: '+e.message,'err');
@@ -758,7 +759,7 @@ async function registerUser(){
   const id = userId(email);
   const firstUser = Object.keys(users).length === 0;
   const createdAt = new Date().toISOString();
-  users[email] = { id, name, email, pass:btoa(pass), initW, height, createdAt, expiresAt:addDays(createdAt, ACCESS_DAYS), blocked:false };
+  users[email] = { id, name, email, pass:btoa(pass), initW, height, createdAt, expiresAt:addDays(createdAt, ACCESS_DAYS), blocked:false, role:email === ADMIN_EMAIL ? 'admin' : 'user' };
   saveUsers(users);
   if(firstUser && localStorage.getItem('forgyato_data') && !localStorage.getItem('forgyato_data_'+id)){
     localStorage.setItem('forgyato_data_'+id, localStorage.getItem('forgyato_data'));
@@ -776,11 +777,17 @@ async function registerUser(){
 async function loginUser(){
   const email = normEmail(document.getElementById('loginEmail').value);
   const pass = document.getElementById('loginPass').value;
+  if(!email || !email.includes('@')){ toast('Informe seu email','err'); return; }
   if(supabaseReady()){
     try{
-      const { data, error } = await db().auth.signInWithPassword({ email, password:pass });
+      const { data:user, error } = await db().from('app_users').select('*').eq('email', email).maybeSingle();
       if(error) throw error;
-      await loadCloudUser(data.user);
+      if(!user || user.password_hash !== await hashPass(pass)){ toast('Email ou senha inválidos','err'); return; }
+      if(user.blocked){ toast('Este cadastro está bloqueado','err'); return; }
+      const profile = profileFromRow(user);
+      if(isExpired(profile)){ toast('Este cadastro expirou','err'); return; }
+      localStorage.setItem(SESSION_KEY, email);
+      await loadCloudUser(user);
       return;
     }catch(e){
       toast('Email ou senha inválidos','err');
@@ -800,7 +807,6 @@ async function loginUser(){
   location.reload();
 }
 async function logout(){
-  if(supabaseReady()) await db().auth.signOut();
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(LEGACY_SESSION_KEY);
   location.reload();
@@ -819,7 +825,7 @@ function userStatus(user){
 }
 async function renderAdminUsers(){
   if(supabaseReady()){
-    const { data:rows, error } = await db().from('profiles').select('*').order('created_at', { ascending:false });
+    const { data:rows, error } = await db().from('app_users').select('*').order('created_at', { ascending:false });
     if(error){ toast('Erro ao carregar cadastros: '+error.message,'err'); return; }
     renderAdminRows((rows || []).map(profileFromRow));
     return;
@@ -856,9 +862,9 @@ function renderAdminRows(rows){
 async function toggleBlockUser(email){
   email = decodeURIComponent(email);
   if(supabaseReady()){
-    const { data:user, error:fetchError } = await db().from('profiles').select('blocked').eq('email', email).single();
+    const { data:user, error:fetchError } = await db().from('app_users').select('blocked').eq('email', email).single();
     if(fetchError){ toast('Cadastro não encontrado','err'); return; }
-    const { error } = await db().from('profiles').update({ blocked:!user.blocked }).eq('email', email);
+    const { error } = await db().from('app_users').update({ blocked:!user.blocked }).eq('email', email);
     if(error){ toast('Erro ao atualizar cadastro: '+error.message,'err'); return; }
     await renderAdminUsers();
     toast(!user.blocked?'Cadastro bloqueado':'Cadastro desbloqueado','ok');
@@ -875,8 +881,8 @@ async function toggleBlockUser(email){
 async function deleteUser(email){
   email = decodeURIComponent(email);
   if(supabaseReady()){
-    if(!confirm(`Excluir o cadastro de ${email}? O login Auth continuará existindo, mas ficará sem acesso ao app.`)) return;
-    const { error } = await db().from('profiles').delete().eq('email', email);
+    if(!confirm(`Excluir o cadastro de ${email}?`)) return;
+    const { error } = await db().from('app_users').delete().eq('email', email);
     if(error){ toast('Erro ao excluir cadastro: '+error.message,'err'); return; }
     await renderAdminUsers();
     toast('Cadastro excluído','ok');

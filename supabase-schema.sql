@@ -1,7 +1,17 @@
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
+-- ForGyato usa email + senha em tabela propria, sem Supabase Auth
+-- e sem verificacao/confirmacao por email.
+--
+-- Aviso: como este projeto roda direto no frontend, estas politicas deixam a
+-- tabela acessivel pela anon key. E simples e rapido, mas nao substitui um
+-- backend seguro para producao.
+
+create extension if not exists pgcrypto;
+
+create table if not exists public.app_users (
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   email text not null unique,
+  password_hash text not null,
   initial_weight numeric(5, 1) not null,
   height numeric(3, 2) not null,
   created_at timestamptz not null default now(),
@@ -10,133 +20,69 @@ create table if not exists public.profiles (
   role text not null default 'user' check (role in ('user', 'admin'))
 );
 
-alter table public.profiles enable row level security;
+create index if not exists app_users_email_idx on public.app_users (email);
+create index if not exists app_users_role_idx on public.app_users (role);
 
-create or replace function public.is_admin(user_id uuid)
-returns boolean
-language sql
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1
-    from public.profiles
-    where id = user_id
-      and role = 'admin'
-  );
-$$;
+alter table public.app_users enable row level security;
 
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  insert into public.profiles (
-    id,
-    name,
-    email,
-    initial_weight,
-    height,
-    expires_at,
-    blocked,
-    role
-  )
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
-    new.email,
-    coalesce((new.raw_user_meta_data->>'initial_weight')::numeric, 80),
-    coalesce((new.raw_user_meta_data->>'height')::numeric, 1.75),
-    case
-      when new.email = 'admin@forgyato.com' then now() + interval '3650 days'
-      else now() + interval '365 days'
-    end,
-    false,
-    case
-      when new.email = 'admin@forgyato.com' then 'admin'
-      else 'user'
-    end
-  )
-  on conflict (id) do update set
-    name = excluded.name,
-    email = excluded.email,
-    role = case
-      when excluded.email = 'admin@forgyato.com' then 'admin'
-      else public.profiles.role
-    end,
-    blocked = false,
-    expires_at = case
-      when excluded.email = 'admin@forgyato.com' then now() + interval '3650 days'
-      else public.profiles.expires_at
-    end;
-
-  return new;
-end;
-$$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-after insert on auth.users
-for each row execute function public.handle_new_user();
-
-drop policy if exists "profiles_select_own_or_admin" on public.profiles;
-create policy "profiles_select_own_or_admin"
-on public.profiles
+drop policy if exists "app_users_public_select" on public.app_users;
+create policy "app_users_public_select"
+on public.app_users
 for select
-to authenticated
-using (
-  auth.uid() = id
-  or public.is_admin(auth.uid())
-);
+to anon
+using (true);
 
-drop policy if exists "profiles_insert_own" on public.profiles;
-create policy "profiles_insert_own"
-on public.profiles
+drop policy if exists "app_users_public_insert" on public.app_users;
+create policy "app_users_public_insert"
+on public.app_users
 for insert
-to authenticated
-with check (auth.uid() = id);
+to anon
+with check (true);
 
-drop policy if exists "profiles_update_admin" on public.profiles;
-create policy "profiles_update_admin"
-on public.profiles
+drop policy if exists "app_users_public_update" on public.app_users;
+create policy "app_users_public_update"
+on public.app_users
 for update
-to authenticated
-using (public.is_admin(auth.uid()))
-with check (public.is_admin(auth.uid()));
+to anon
+using (true)
+with check (true);
 
-drop policy if exists "profiles_delete_admin" on public.profiles;
-create policy "profiles_delete_admin"
-on public.profiles
+drop policy if exists "app_users_public_delete" on public.app_users;
+create policy "app_users_public_delete"
+on public.app_users
 for delete
-to authenticated
-using (public.is_admin(auth.uid()));
+to anon
+using (true);
 
--- Depois de criar o usuario admin no painel Authentication > Users,
--- rode este bloco trocando o email se quiser outro admin.
-insert into public.profiles (
-  id,
+-- Admin padrao:
+-- email: davidalcantara9@hotmail.com
+-- senha: admin123
+--
+-- O hash abaixo corresponde a SHA-256 de "forgyato:admin123",
+-- mesmo algoritmo usado no index.html.
+insert into public.app_users (
   name,
   email,
+  password_hash,
   initial_weight,
   height,
   expires_at,
   blocked,
   role
 )
-select
-  id,
+values (
   'Administrador',
-  email,
+  'davidalcantara9@hotmail.com',
+  '53b318e554b303dae4603c6de8fc2be4a639fe97572e5d21d3af39cfd429378c',
   80,
   1.75,
   now() + interval '3650 days',
   false,
   'admin'
-from auth.users
-where email = 'admin@forgyato.com'
-on conflict (id) do update set
+)
+on conflict (email) do update set
+  name = excluded.name,
+  password_hash = excluded.password_hash,
   role = 'admin',
   blocked = false,
   expires_at = now() + interval '3650 days';

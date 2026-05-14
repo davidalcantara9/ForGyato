@@ -1,30 +1,32 @@
--- Use este SQL depois de criar o usuario admin em Authentication > Users
--- ou depois de criar a conta admin pelo formulario do site.
--- Email padrao do admin: admin@forgyato.com
+-- Admin ForGyato sem Supabase Auth.
+-- Rode este arquivo apenas se quiser recriar/promover o admin.
+--
+-- Email: davidalcantara9@hotmail.com
+-- Senha: admin123
 
-insert into public.profiles (
-  id,
+insert into public.app_users (
   name,
   email,
+  password_hash,
   initial_weight,
   height,
   expires_at,
   blocked,
   role
 )
-select
-  id,
+values (
   'Administrador',
-  email,
+  'davidalcantara9@hotmail.com',
+  '53b318e554b303dae4603c6de8fc2be4a639fe97572e5d21d3af39cfd429378c',
   80,
   1.75,
   now() + interval '3650 days',
   false,
   'admin'
-from auth.users
-where email = 'admin@forgyato.com'
-on conflict (id) do update set
-  name = 'Administrador',
+)
+on conflict (email) do update set
+  name = excluded.name,
+  password_hash = excluded.password_hash,
   role = 'admin',
   blocked = false,
   expires_at = now() + interval '3650 days';
