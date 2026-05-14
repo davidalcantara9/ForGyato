@@ -181,11 +181,11 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
       <div class="g2">
         <div class="field">
           <label for="regWeight">Peso inicial</label>
-          <input type="number" id="regWeight" step="0.1" value="110"/>
+          <input type="number" id="regWeight" step="0.1" placeholder="Ex: 80.0"/>
         </div>
         <div class="field">
           <label for="regHeight">Altura</label>
-          <input type="number" id="regHeight" step="0.01" value="1.92"/>
+          <input type="number" id="regHeight" step="0.01" placeholder="Ex: 1.75"/>
         </div>
       </div>
       <button class="bg2" style="width:100%" onclick="registerUser()">Criar conta</button>
@@ -202,7 +202,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <button class="logout" onclick="logout()">Sair</button>
   </div>
   <h1>SECABEM — <span id="userNameTitle">Seu nome</span></h1>
-  <p id="profileLine">110 kg · 1,92 m · OMAD · 30 dias</p>
+  <p id="profileLine">Perfil configurável · OMAD · 30 dias</p>
   <div class="badge" id="badge">⚡ IA offline</div>
 </div>
 
@@ -222,7 +222,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
   <!-- STATS -->
   <div class="stats">
     <div class="sc"><div class="v" id="sDia" style="color:var(--a)">1</div><div class="l">Dia atual</div></div>
-    <div class="sc"><div class="v" id="sPeso" style="color:var(--a2)">110</div><div class="l">Peso kg</div><div class="d" id="sDelta">–</div></div>
+    <div class="sc"><div class="v" id="sPeso" style="color:var(--a2)">—</div><div class="l">Peso kg</div><div class="d" id="sDelta">–</div></div>
     <div class="sc"><div class="v" id="sStreak" style="color:var(--a4)">0</div><div class="l">Sequência 🔥</div></div>
     <div class="sc"><div class="v" id="sPct" style="color:var(--a3)">0%</div><div class="l">Progresso</div></div>
   </div>
@@ -267,7 +267,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
     <div class="card">
       <div class="ct">⚖️ Registro de peso</div>
       <div class="wi">
-        <input type="number" id="pesoVal" step="0.1" placeholder="110.0"/>
+        <input type="number" id="pesoVal" step="0.1" placeholder="kg"/>
         <button class="bg2" onclick="regPeso()">Registrar</button>
       </div>
       <p style="font-size:.75rem;color:var(--m);margin-top:4px">Pese-se em jejum pela manhã</p>
@@ -338,7 +338,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
   <!-- COACH -->
   <div class="card">
     <div class="ct">🧠 Coach IA — Pergunte qualquer coisa</div>
-    <p style="font-size:.82rem;color:var(--m);margin-bottom:8px">O coach sabe: você tem 110kg, 1,92m, faz OMAD, está em protocolo de secagem. Pode perguntar sobre fome, treino, motivação, alimentos...</p>
+    <p id="coachProfileLine" style="font-size:.82rem;color:var(--m);margin-bottom:8px">O coach usa os dados do perfil cadastrado e o protocolo atual. Pode perguntar sobre fome, treino, motivação, alimentos...</p>
     <textarea class="ta" id="coachTxt" placeholder="Ex: Sinto muita fome à noite, o que fazer? / Posso comer banana? / Quebrei o protocolo ontem, e agora?"></textarea>
     <button class="bp" id="btnCoach" onclick="perguntarCoach()">🤖 Perguntar ao coach</button>
     <div class="ab" id="coachBox">
@@ -475,7 +475,7 @@ const USERS_KEY = 'secagem_users';
 const SESSION_KEY = 'secagem_session';
 let currentUser = null;
 function defaultState(){
-  return { start:null, initW:currentUser?.initW||110, weights:{}, checks:{}, water:{}, meals:{}, alts:[] };
+  return { start:null, initW:currentUser?.initW||null, weights:{}, checks:{}, water:{}, meals:{}, alts:[] };
 }
 let S = defaultState();
 let KEY = null;
@@ -494,7 +494,7 @@ function getUsers(){
 function saveUsers(users){ localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
 function normEmail(v){ return v.trim().toLowerCase(); }
 function userId(email){ return btoa(email).replace(/=+$/,'').replace(/\W/g,''); }
-function userDataKey(){ return 'david_sec_'+currentUser.id; }
+function userDataKey(){ return 'secabem_data_'+currentUser.id; }
 function userApiKey(){ return '_dk_'+currentUser.id; }
 function showAuth(mode){
   const login = mode === 'login';
@@ -518,18 +518,20 @@ function registerUser(){
   const name = document.getElementById('regName').value.trim();
   const email = normEmail(document.getElementById('regEmail').value);
   const pass = document.getElementById('regPass').value;
-  const initW = parseFloat(document.getElementById('regWeight').value)||110;
-  const height = parseFloat(document.getElementById('regHeight').value)||1.92;
+  const initW = parseFloat(document.getElementById('regWeight').value);
+  const height = parseFloat(document.getElementById('regHeight').value);
   if(!name || !email || !email.includes('@')){ toast('Preencha nome e email válidos','err'); return; }
   if(pass.length < 6){ toast('A senha precisa ter pelo menos 6 caracteres','err'); return; }
+  if(isNaN(initW)||initW<30||initW>300){ toast('Informe um peso inicial válido','err'); return; }
+  if(isNaN(height)||height<1||height>2.5){ toast('Informe uma altura válida','err'); return; }
   const users = getUsers();
   if(users[email]){ toast('Este email já tem conta','err'); return; }
   const id = userId(email);
   const firstUser = Object.keys(users).length === 0;
   users[email] = { id, name, email, pass:btoa(pass), initW, height, createdAt:new Date().toISOString() };
   saveUsers(users);
-  if(firstUser && localStorage.getItem('david_sec') && !localStorage.getItem('david_sec_'+id)){
-    localStorage.setItem('david_sec_'+id, localStorage.getItem('david_sec'));
+  if(firstUser && localStorage.getItem('secabem_data') && !localStorage.getItem('secabem_data_'+id)){
+    localStorage.setItem('secabem_data_'+id, localStorage.getItem('secabem_data'));
   }
   if(firstUser && localStorage.getItem('_dk') && !localStorage.getItem('_dk_'+id)){
     localStorage.setItem('_dk_'+id, localStorage.getItem('_dk'));
@@ -555,7 +557,11 @@ function startApp(){
   document.getElementById('appShell').classList.remove('hidden');
   document.getElementById('userNameTitle').textContent=currentUser.name;
   document.getElementById('userPill').textContent=currentUser.name;
-  document.getElementById('profileLine').textContent=`${currentUser.initW} kg · ${currentUser.height.toLocaleString('pt-BR')} m · OMAD · 30 dias`;
+  const profileParts = [];
+  if(currentUser.initW) profileParts.push(`${currentUser.initW} kg`);
+  if(currentUser.height) profileParts.push(`${currentUser.height.toLocaleString('pt-BR')} m`);
+  document.getElementById('profileLine').textContent=`${profileParts.join(' · ') || 'Perfil configurável'} · OMAD · 30 dias`;
+  document.getElementById('coachProfileLine').textContent=`O coach usa os dados do perfil cadastrado e o protocolo atual. Pode perguntar sobre fome, treino, motivação, alimentos...`;
   S = defaultState();
   loadS(); buildCal(); buildCopos(); renderAlts(); renderLog(); updateStats(); initChart(); loadKey();
 }
@@ -563,9 +569,9 @@ function startApp(){
 // ── PERSISTÊNCIA ──────────────────────────────────────────────
 function saveS(){ localStorage.setItem(userDataKey(), JSON.stringify(S)); }
 function loadS(){
-  const r = localStorage.getItem(userDataKey());
+  let r = localStorage.getItem(userDataKey());
   if(r){ try{ S = {...S,...JSON.parse(r)}; }catch(e){} }
-  S.initW = S.initW || currentUser.initW || 110;
+  S.initW = S.initW || currentUser.initW;
   if(!S.start){ S.start = tod(); saveS(); }
   const t = tod();
   if(S.checks[t]){
@@ -651,9 +657,13 @@ async function aiVision(messages){
 
 function sysPrompt(){
   const nome = currentUser?.name || 'usuário';
-  const peso = currentUser?.initW || S.initW || 110;
-  const altura = currentUser?.height || 1.92;
-  return `Você é coach de emagrecimento de ${nome}. Perfil: ${peso}kg, ${altura}m, protocolo OMAD de 30 dias (7 dias hardcore + 25 sustentáveis), foco em proteína, zero açúcar e farinha na Fase 1. Seja direto, prático e motivador. Responda sempre em português, máximo 5 parágrafos curtos.`;
+  const peso = currentUser?.initW || S.initW;
+  const altura = currentUser?.height;
+  const perfil = [
+    peso ? `${peso}kg` : null,
+    altura ? `${altura}m` : null
+  ].filter(Boolean).join(', ') || 'dados físicos não informados';
+  return `Você é coach de emagrecimento de ${nome}. Perfil: ${perfil}, protocolo OMAD de 30 dias (7 dias hardcore + 25 sustentáveis), foco em proteína, zero açúcar e farinha na Fase 1. Seja direto, prático e motivador. Responda sempre em português, máximo 5 parágrafos curtos.`;
 }
 
 // ── CALENDÁRIO ────────────────────────────────────────────────
@@ -702,11 +712,12 @@ function initChart(){
   const ctx=document.getElementById('wChart').getContext('2d');
   const labs=Object.keys(S.weights).map(d=>d.slice(5));
   const vals=Object.values(S.weights);
+  const baseWeight = S.initW || currentUser?.initW || 0;
   wChart=new Chart(ctx,{
     type:'line',
     data:{
       labels:labs.length?labs:['Hoje'],
-      datasets:[{label:'kg',data:vals.length?vals:[S.initW],
+      datasets:[{label:'kg',data:vals.length?vals:[baseWeight],
         borderColor:'#00d4aa',backgroundColor:'rgba(0,212,170,.1)',
         borderWidth:2,pointBackgroundColor:'#00d4aa',pointRadius:4,fill:true,tension:0.4}]
     },
