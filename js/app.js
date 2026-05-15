@@ -21,6 +21,7 @@ let supabaseDb = null;
 // ── INIT ──────────────────────────────────────────────────────
 window.onload = async () => {
   initTheme();
+  initNavigation();
   await initAuth();
 };
 
@@ -158,6 +159,16 @@ function setTheme(theme, persist=true){
   document.body.dataset.theme = resolved;
   document.querySelectorAll('.theme-select').forEach(sel=>sel.value=theme);
   if(persist) localStorage.setItem('forgyato_theme', theme);
+}
+function initNavigation(){
+  document.querySelectorAll('.side-menu a,.mobile-nav a').forEach(link=>{
+    link.addEventListener('click', ()=>{
+      const menu = link.closest('.side-menu,.mobile-nav');
+      if(!menu) return;
+      menu.querySelectorAll('a').forEach(item=>item.classList.remove('active'));
+      link.classList.add('active');
+    });
+  });
 }
 function normalizeUser(user){
   if(!user.createdAt) user.createdAt = new Date().toISOString();

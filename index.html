@@ -7,7 +7,7 @@
 <link rel="icon" href="images/forgyato-mark.svg?v=2" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -89,15 +89,20 @@
 </div>
 
 <div class="admin-shell hidden" id="adminShell">
-  <div class="hdr">
-    <div>
-      <div class="brand-head">
-        <img class="brand-mark" src="images/forgyato-mark.svg?v=2" alt="">
-        <h1>ForGyato — <span>Admin</span></h1>
+  <aside class="side-nav">
+    <div class="side-brand">
+      <img src="images/forgyato-mark.svg?v=2" alt="">
+      <div>
+        <strong>ForGyato</strong>
+        <span>Admin</span>
       </div>
-      <p>Gerenciamento de cadastros e acessos</p>
     </div>
-    <div class="userbar">
+    <nav class="side-menu" aria-label="Menu administrativo">
+      <a href="#adminDashboard" class="active">Visão geral</a>
+      <a href="#adminAi">Token de IA</a>
+      <a href="#adminUsersCard">Cadastros</a>
+    </nav>
+    <div class="side-footer">
       <span class="userpill">Administrador</span>
       <select class="theme-select" onchange="setTheme(this.value)">
         <option value="auto">Auto</option>
@@ -106,9 +111,31 @@
       </select>
       <button class="logout" onclick="logout()">Sair</button>
     </div>
-  </div>
+  </aside>
+  <main class="workspace">
+    <div class="topbar">
+      <div>
+        <h1>Administração</h1>
+        <p>Gerenciamento de cadastros, créditos e acesso à IA</p>
+      </div>
+      <div class="top-actions">
+        <select class="theme-select" onchange="setTheme(this.value)">
+          <option value="auto">Auto</option>
+          <option value="dark">Escuro</option>
+          <option value="light">Claro</option>
+        </select>
+        <button class="logout" onclick="logout()">Sair</button>
+      </div>
+    </div>
+    <div class="mobile-nav" aria-label="Menu administrativo mobile">
+      <a href="#adminDashboard">Visão geral</a>
+      <a href="#adminAi">Token IA</a>
+      <a href="#adminUsersCard">Cadastros</a>
+    </div>
   <div class="admin-wrap container-xxl">
+    <section id="adminDashboard"></section>
     <div class="api-box show" id="apiBox">
+      <span id="adminAi"></span>
       <h3>🔑 Token global de IA</h3>
       <p>Configure a chave da OpenAI usada pelas análises dos usuários. Cada novo usuário começa com 50 consultas de refeição.</p>
       <div class="api-status" id="apiStatus">Status: não testado</div>
@@ -131,7 +158,7 @@
       </div>
       <button class="bgh sm" onclick="renderAdminUsers()">Atualizar</button>
     </div>
-    <div class="card table-responsive">
+    <div class="card table-responsive" id="adminUsersCard">
       <table class="admin-table">
         <thead>
           <tr>
@@ -149,18 +176,26 @@
       </table>
     </div>
   </div>
+  </main>
 </div>
 
 <div class="app hidden" id="appShell">
-<div class="hdr">
-  <div>
-    <div class="brand-head">
-      <img class="brand-mark" src="images/forgyato-mark.svg?v=2" alt="">
-      <h1>ForGyato — <span id="userNameTitle">Seu nome</span></h1>
+<aside class="side-nav">
+  <div class="side-brand">
+    <img src="images/forgyato-mark.svg?v=2" alt="">
+    <div>
+      <strong>ForGyato</strong>
+      <span id="userNameTitle">Seu nome</span>
     </div>
-    <p id="profileLine">Perfil configurável · objetivo personalizado</p>
   </div>
-  <div class="userbar">
+  <nav class="side-menu" aria-label="Menu principal">
+    <a href="#overview" class="active">Painel</a>
+    <a href="#checklist">Checklist</a>
+    <a href="#progress">Progresso</a>
+    <a href="#aiTools">IA</a>
+    <a href="#foodGuide">Guia</a>
+  </nav>
+  <div class="side-footer">
     <span class="userpill" id="userPill">Usuário</span>
     <select class="theme-select" onchange="setTheme(this.value)">
       <option value="auto">Auto</option>
@@ -169,13 +204,37 @@
     </select>
     <button class="logout" onclick="logout()">Sair</button>
   </div>
-  <div class="badge" id="badge">⚡ IA offline</div>
+</aside>
+<main class="workspace">
+<div class="topbar">
+  <div>
+    <h1>Dashboard</h1>
+    <p id="profileLine">Perfil configurável · objetivo personalizado</p>
+  </div>
+  <div class="top-status">
+    <div class="badge" id="badge">⚡ IA offline</div>
+    <div class="top-actions">
+      <select class="theme-select" onchange="setTheme(this.value)">
+        <option value="auto">Auto</option>
+        <option value="dark">Escuro</option>
+        <option value="light">Claro</option>
+      </select>
+      <button class="logout" onclick="logout()">Sair</button>
+    </div>
+  </div>
+</div>
+<div class="mobile-nav" aria-label="Menu principal mobile">
+  <a href="#overview">Painel</a>
+  <a href="#checklist">Checklist</a>
+  <a href="#progress">Progresso</a>
+  <a href="#aiTools">IA</a>
+  <a href="#foodGuide">Guia</a>
 </div>
 
 <div class="wrap container-xxl">
 
   <!-- STATS -->
-  <div class="stats">
+  <div class="stats" id="overview">
     <div class="sc"><div class="v" id="sDia" style="color:var(--a)">1</div><div class="l">Dias ativos</div></div>
     <div class="sc"><div class="v" id="sPeso" style="color:var(--a2)">—</div><div class="l">Peso kg</div><div class="d" id="sDelta">–</div></div>
     <div class="sc"><div class="v" id="sStreak" style="color:var(--a4)">0</div><div class="l">Sequência 🔥</div></div>
@@ -184,13 +243,13 @@
     <div class="sc"><div class="v" id="sCredits" style="color:#7dd3fc">50</div><div class="l">Consultas IA</div></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="plan">
     <div class="ct">🎯 Plano de ação</div>
     <div class="ac" id="actionPlan">Seu plano aparece aqui após o cadastro.</div>
   </div>
 
   <!-- PROGRESSO -->
-  <div class="card">
+  <div class="card" id="progress">
     <div class="ct">📊 Progresso do objetivo</div>
     <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--m);margin-bottom:5px">
       <span id="phase1Name">Fase 1 — arranque</span><span id="p1l">0/7</span>
@@ -209,7 +268,7 @@
 
   <!-- CHECKLIST + PESO -->
   <div class="g2">
-    <div class="card">
+    <div class="card" id="checklist">
       <div class="ct">✅ Checklist de hoje</div>
       <ul class="cl" id="checks">
         <li onclick="toggle(this,'omad')"><div class="cb"></div><span>🍽 Cumpri o OMAD</span></li>
@@ -237,7 +296,7 @@
   </div>
 
   <!-- ÁGUA -->
-  <div class="card">
+  <div class="card" id="water">
     <div class="ct">💧 Controle de água</div>
     <p style="font-size:.8rem;color:var(--m);margin-bottom:4px">Clique nos copos para marcar (300ml cada)</p>
     <div class="wg" id="copos"></div>
@@ -248,7 +307,7 @@
   </div>
 
   <!-- CALENDÁRIO -->
-  <div class="card">
+  <div class="card" id="calendar">
     <div class="ct">📅 Calendário do objetivo</div>
     <div style="display:flex;gap:14px;font-size:.75rem;flex-wrap:wrap;margin-bottom:8px">
       <span><span style="display:inline-block;width:11px;height:11px;background:#0a2a1a;border:1px solid var(--a2);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Completo</span>
@@ -259,7 +318,7 @@
   </div>
 
   <!-- FOTO -->
-  <div class="card">
+  <div class="card" id="aiTools">
     <div class="ct">📸 Análise de prato por IA</div>
     <p style="font-size:.82rem;color:var(--m);margin-bottom:12px">Suba uma foto e a IA estima calorias, avalia a qualidade e diz se está dentro do protocolo.</p>
     <div class="pd">
@@ -279,7 +338,7 @@
   </div>
 
   <!-- REFEIÇÃO -->
-  <div class="card">
+  <div class="card" id="mealAi">
     <div class="ct">🍽 Registrar refeição + avaliação IA</div>
     <textarea class="ta" id="mealTxt" placeholder="Descreva o que comeu... ex: 300g frango grelhado, 2 colheres arroz integral, salada à vontade, 2 ovos"></textarea>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -297,7 +356,7 @@
   </div>
 
   <!-- COACH -->
-  <div class="card">
+  <div class="card" id="coachAi">
     <div class="ct">🧠 Coach IA — Pergunte qualquer coisa</div>
     <p id="coachProfileLine" style="font-size:.82rem;color:var(--m);margin-bottom:8px">O coach usa os dados do perfil cadastrado e o protocolo atual. Pode perguntar sobre fome, treino, motivação, alimentos...</p>
     <textarea class="ta" id="coachTxt" placeholder="Ex: Sinto muita fome à noite, o que fazer? / Posso comer banana? / Quebrei o protocolo ontem, e agora?"></textarea>
@@ -309,7 +368,7 @@
   </div>
 
   <!-- SUGESTÃO -->
-  <div class="card">
+  <div class="card" id="suggestAi">
     <div class="ct">💡 Sugestão de refeição IA</div>
     <p style="font-size:.82rem;color:var(--m);margin-bottom:12px">A IA monta uma refeição OMAD ideal baseada no seu protocolo e fase atual.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -325,7 +384,7 @@
   </div>
 
   <!-- NOTURNO -->
-  <div class="card">
+  <div class="card" id="nightHelp">
     <div class="ct">🌙 Fome ou ansiedade?</div>
     <p style="font-size:.82rem;color:var(--m);margin-bottom:12px">Sentiu vontade de comer agora? Identifique o que está sentindo:</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -346,7 +405,7 @@
   </div>
 
   <!-- ALTERNATIVAS -->
-  <div class="card">
+  <div class="card" id="alternatives">
     <div class="ct">🔄 Alternativas — Plano B</div>
     <p style="font-size:.82rem;color:var(--m);margin-bottom:12px">Cadastre alimentos que você pode comer sem sair muito do protocolo.</p>
     <div class="air">
@@ -362,7 +421,7 @@
   </div>
 
   <!-- FASES -->
-  <div class="card">
+  <div class="card" id="phases">
     <div class="ct">🗓 Fases do protocolo</div>
     <div class="tabs">
       <button class="tab on" onclick="fase(1,this)">Fase 1 — 7 dias</button>
@@ -395,7 +454,7 @@
   </div>
 
   <!-- ALIMENTOS -->
-  <div class="card">
+  <div class="card" id="foodGuide">
     <div class="ct">🍱 Guia de alimentos</div>
     <div class="fg2">
       <div class="fc a">
@@ -428,6 +487,7 @@
   </div>
 
 </div><!-- /wrap -->
+</main>
 </div><!-- /appShell -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
