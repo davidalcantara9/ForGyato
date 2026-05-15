@@ -369,6 +369,15 @@ function userStatus(user){
   if(isExpired(user)) return {label:'Expirado', cls:'expired'};
   return {label:'Ativo', cls:'ok'};
 }
+function icon(name){
+  const icons={
+    save:'<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>',
+    lock:'<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+    unlock:'<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.2-2.8"/></svg>',
+    trash:'<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>'
+  };
+  return icons[name] || '';
+}
 async function renderAdminUsers(){
   if(supabaseReady()){
     const { data:rows, error } = await db().from('app_users').select('*').order('created_at', { ascending:false });
@@ -404,16 +413,31 @@ function renderAdminRows(rows){
       <td data-label="Usuário">${esc(user.name)}</td>
       <td data-label="Email">${esc(user.email)}</td>
       <td data-label="Objetivo">${goalLabel(user.goal)}<br><span style="color:var(--m);font-size:.74rem">${user.goalDays} dias · ${strategyLabel(user.strategy)}</span></td>
-      <td data-label="IA">${user.aiCredits} consulta(s)</td>
+      <td data-label="IA"><div class="credit-control"><input type="number" min="0" step="1" id="credits_${user.id}" value="${user.aiCredits}"><button class="icon-btn" title="Salvar consultas" aria-label="Salvar consultas" onclick="saveUserCredits('${encodeURIComponent(user.email)}','${user.id}')">${icon('save')}</button></div></td>
       <td data-label="Criado em">${fmtDate(user.createdAt)}</td>
       <td data-label="Expira em">${fmtDate(user.expiresAt)}<br><span style="color:var(--m);font-size:.74rem">${leftText}</span></td>
       <td data-label="Status"><span class="status-pill ${status.cls}">${status.label}</span></td>
       <td data-label="Ações"><div class="admin-actions">
-        <button class="bgh sm" onclick="toggleBlockUser('${encodeURIComponent(user.email)}')">${user.blocked?'Desbloquear':'Bloquear'}</button>
-        <button class="bdr sm" onclick="deleteUser('${encodeURIComponent(user.email)}')">Excluir</button>
+        <button class="icon-btn" title="${user.blocked?'Desbloquear':'Bloquear'}" aria-label="${user.blocked?'Desbloquear':'Bloquear'}" onclick="toggleBlockUser('${encodeURIComponent(user.email)}')">${icon(user.blocked?'unlock':'lock')}</button>
+        <button class="icon-btn danger" title="Excluir" aria-label="Excluir" onclick="deleteUser('${encodeURIComponent(user.email)}')">${icon('trash')}</button>
       </div></td>
     </tr>`;
   }).join('');
+}
+async function saveUserCredits(email,id){
+  email = decodeURIComponent(email);
+  const input=document.getElementById('credits_'+id);
+  const credits=parseInt(input?.value,10);
+  if(isNaN(credits)||credits<0){ toast('Informe um número válido de consultas','err'); return; }
+  if(supabaseReady()){
+    const { error } = await db().from('app_users').update({ai_credits:credits}).eq('email', email);
+    if(error){ toast('Erro ao salvar consultas: '+error.message,'err'); return; }
+  }else{
+    const users=getUsers();
+    if(users[email]){ users[email].aiCredits=credits; saveUsers(users); }
+  }
+  await renderAdminUsers();
+  toast('Consultas atualizadas','ok');
 }
 async function toggleBlockUser(email){
   email = decodeURIComponent(email);
@@ -650,20 +674,39 @@ function buildCal(){
     g.appendChild(el);
   }
 }
+function dayCompletionCount(date){
+  const c=S.checks[date]||{};
+  return Object.values(c).filter(Boolean).length;
+}
+function isDayComplete(date){
+  return dayCompletionCount(date)>=6;
+}
+function completedDaysCount(){
+  if(!S.start) return 0;
+  const total=currentUser?.goalDays||30;
+  let done=0;
+  for(let d=1;d<=total;d++){
+    if(isDayComplete(dayDate(d))) done++;
+  }
+  return done;
+}
 
 // ── CHECKLIST ─────────────────────────────────────────────────
 function toggle(li,k){
+  const wasComplete=isDayComplete(tod());
   li.classList.toggle('done');
   const t=tod(); if(!S.checks[t]) S.checks[t]={};
   S.checks[t][k]=li.classList.contains('done');
   saveS(); updCC(); updateStats(); buildCal();
+  if(!wasComplete && isDayComplete(t)) toast('Dia concluído com sucesso!','ok');
 }
 function updCC(){
   const tot=document.querySelectorAll('#checks li').length;
   const dn=document.querySelectorAll('#checks li.done').length;
-  document.getElementById('cc').textContent=dn+'/'+tot;
+  document.getElementById('cc').textContent=dn+'/'+tot+(dn>=6?' · concluído':'');
 }
 function marcarTudo(){
+  const wasComplete=isDayComplete(tod());
   document.querySelectorAll('#checks li').forEach(li=>{
     if(!li.classList.contains('done')){
       li.classList.add('done');
@@ -672,7 +715,7 @@ function marcarTudo(){
       S.checks[t][k]=true;
     }
   });
-  updCC(); saveS(); updateStats(); buildCal(); toast('🎉 Dia marcado como completo!','ok');
+  updCC(); saveS(); updateStats(); buildCal(); toast(wasComplete?'Checklist atualizado':'Dia concluído com sucesso!','ok');
 }
 
 // ── PESO ──────────────────────────────────────────────────────
@@ -748,6 +791,7 @@ function updateStats(){
     else if(i>0) break;
   }
   document.getElementById('sStreak').textContent=streak;
+  document.getElementById('sDoneDays').textContent=completedDaysCount();
   const totalDays=currentUser?.goalDays||30;
   const p1Days=Math.min(7,totalDays);
   const p2Days=Math.max(totalDays-p1Days,1);
